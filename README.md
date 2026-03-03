@@ -103,4 +103,4 @@ Events support optional credibility metadata:
 - `sourceRegion` — `"us"` | `"eu"` | `"middle-east"` | `"asia"` | `"other"`
 - `sources` — Array of `{ name, url, region? }` for multi-source events
 
-**TODO for GitHub Actions workflows:** Update Claude prompts in `news-cron.yml`, `telegram-news.yml`, `external-news.yml`, and `tweet-news.yml` to populate these fields. Cross-checking rules: 3+ sources from different bias categories → confirmed; single bias category → unconfirmed; contradicting facts → disputed.
+All four GitHub Actions workflows (`news-cron.yml`, `telegram-news.yml`, `external-news.yml`, `tweet-news.yml`) populate these fields automatically. Cross-checking rules: 3+ sources from different bias categories → confirmed; single bias category → unconfirmed; contradicting facts → disputed.
