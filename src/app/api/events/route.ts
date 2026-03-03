@@ -4,6 +4,7 @@ import { getAllEvents, getPublishedEvents, addEvent } from "@/lib/kv";
 import { generateSlug } from "@/lib/slug";
 import { notifySubscribers } from "@/lib/notify";
 import { validateEventInput } from "@/lib/validate-event";
+import { revalidateTimeline } from "@/lib/revalidate";
 import type { TimelineEvent } from "@/data/timeline";
 
 export async function GET() {
@@ -39,6 +40,7 @@ export async function POST(req: NextRequest) {
   // Notify if event is published immediately (not draft)
   if (event.status !== "draft") {
     notifySubscribers(event).catch(console.error);
+    revalidateTimeline();
   }
 
   return NextResponse.json(event, { status: 201 });

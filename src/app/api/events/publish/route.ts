@@ -4,6 +4,7 @@ import { getAllEvents, addEvent, getBufferedMedia } from "@/lib/kv";
 import { generateSlug } from "@/lib/slug";
 import { notifySubscribers } from "@/lib/notify";
 import { validateEventInput } from "@/lib/validate-event";
+import { revalidateTimeline } from "@/lib/revalidate";
 import type { MediaItem } from "@/data/timeline";
 
 export async function POST(req: NextRequest) {
@@ -46,5 +47,6 @@ export async function POST(req: NextRequest) {
   // Send push notifications (events from this endpoint are published)
   notifySubscribers(event).catch(console.error);
 
+  revalidateTimeline();
   return NextResponse.json(event, { status: 201 });
 }

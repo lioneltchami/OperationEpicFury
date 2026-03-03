@@ -3,24 +3,34 @@ import { Ticker } from "@/components/sections/Ticker";
 import { StatsBar } from "@/components/sections/StatsBar";
 import { Timeline } from "@/components/sections/Timeline";
 import { Footer } from "@/components/sections/Footer";
-import { getPublishedEvents } from "@/lib/kv";
+import { getPublishedEventsPaginated } from "@/lib/kv";
+import { getStats } from "@/lib/stats";
 import { getDictionary } from "@/i18n";
 import type { Locale } from "@/i18n/config";
 import type { TimelineEvent } from "@/data/timeline";
 import type { Dictionary } from "@/i18n";
 
-export const revalidate = 60;
+const INITIAL_PAGE_SIZE = 30;
 
 async function loadData(locale: string) {
   try {
-    const [events, dict] = await Promise.all([
-      getPublishedEvents(),
+    const [page, dict, stats] = await Promise.all([
+      getPublishedEventsPaginated(0, INITIAL_PAGE_SIZE),
       getDictionary(locale as Locale),
+      getStats(),
     ]);
-    return { events, dict, error: false as const };
+    // Reverse so newest first
+    const events = [...page.events].reverse();
+    return { events, total: page.total, dict, stats, error: false as const };
   } catch (err) {
     console.error("[page] Failed to load timeline data:", err);
-    return { events: [] as TimelineEvent[], dict: null as Dictionary | null, error: true as const };
+    return {
+      events: [] as TimelineEvent[],
+      total: 0,
+      dict: null as Dictionary | null,
+      stats: null,
+      error: true as const,
+    };
   }
 }
 
@@ -30,7 +40,7 @@ export default async function Home({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const { events, dict, error } = await loadData(locale);
+  const { events, total, dict, stats, error } = await loadData(locale);
 
   if (error || !dict) {
     return (
@@ -53,8 +63,6 @@ export default async function Home({
       </main>
     );
   }
-
-  const reversed = [...events].reverse();
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -81,9 +89,13 @@ export default async function Home({
       <main className="min-h-screen bg-black">
         <Hero dict={dict} locale={locale as Locale} />
         <Ticker />
-        <StatsBar />
+        <StatsBar stats={stats} />
         <div id="timeline">
-          <Timeline events={reversed} />
+          <Timeline
+            initialEvents={events}
+            totalEvents={total}
+            pageSize={INITIAL_PAGE_SIZE}
+          />
         </div>
         <Footer />
       </main>

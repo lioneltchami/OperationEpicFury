@@ -3,6 +3,7 @@ import { authorize } from "@/lib/authorize";
 import { getEventById, updateEvent, deleteEvent } from "@/lib/kv";
 import { notifySubscribers } from "@/lib/notify";
 import { validateEventUpdate } from "@/lib/validate-event";
+import { revalidateTimeline } from "@/lib/revalidate";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -48,6 +49,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     notifySubscribers(updated).catch(console.error);
   }
 
+  revalidateTimeline();
   return NextResponse.json(updated);
 }
 
@@ -61,5 +63,6 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   if (!ok) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
+  revalidateTimeline();
   return NextResponse.json({ ok: true });
 }
