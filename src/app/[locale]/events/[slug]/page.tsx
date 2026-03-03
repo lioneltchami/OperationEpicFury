@@ -1,16 +1,19 @@
-import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
-import { getEventBySlug, getAdjacentEvents, getPublishedEvents } from "@/lib/kv";
-import { locales, type Locale } from "@/i18n/config";
-import { getDictionary } from "@/i18n";
+import { notFound } from "next/navigation";
+import { EventMap } from "@/components/ui/EventMapLazy";
 import { LocalTime } from "@/components/ui/LocalTime";
 import { MediaGallery } from "@/components/ui/MediaGallery";
 import { ShareButtons } from "@/components/ui/ShareButtons";
 import { SourcePerspectives } from "@/components/ui/SourcePerspectives";
-import { SITE_URL, SITE_NAME, SITE_NAME_FR } from "@/lib/utils";
-
-const EventMap = dynamic(() => import("@/components/ui/EventMap"), { ssr: false });
+import { categoryTailwind, defaultCategoryTailwind } from "@/data/categories";
+import { getDictionary } from "@/i18n";
+import { type Locale, locales } from "@/i18n/config";
+import {
+  getAdjacentEvents,
+  getEventBySlug,
+  getPublishedEvents,
+} from "@/lib/kv";
+import { SITE_NAME, SITE_NAME_FR, SITE_URL } from "@/lib/utils";
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
@@ -41,7 +44,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const isFr = locale === "fr";
   const title = isFr && event.headline_fr ? event.headline_fr : event.headline;
   const description = isFr && event.body_fr ? event.body_fr : event.body;
-  const truncatedDesc = description.length > 160 ? description.slice(0, 157) + "..." : description;
+  const truncatedDesc =
+    description.length > 160 ? description.slice(0, 157) + "..." : description;
 
   return {
     title: `${title} | Operation Epic Fury`,
@@ -52,7 +56,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "article",
       siteName: new URL(SITE_URL).host,
       url: `${SITE_URL}/${locale}/events/${slug}`,
-      images: [{ url: `${SITE_URL}/api/og?slug=${slug}`, width: 1200, height: 630, alt: title }],
+      images: [
+        {
+          url: `${SITE_URL}/api/og?slug=${slug}`,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
@@ -84,24 +95,15 @@ export default async function EventPage({ params }: Props) {
   if (!event) notFound();
 
   const isFr = locale === "fr";
-  
-  const headline = isFr && event.headline_fr ? event.headline_fr : event.headline;
+
+  const headline =
+    isFr && event.headline_fr ? event.headline_fr : event.headline;
   const body = isFr && event.body_fr ? event.body_fr : event.body;
   const catLabels = dict.categories as Record<string, string>;
   const catLabel = catLabels[event.category] ?? event.category;
   const confidenceLabel = event.confidence ?? "confirmed";
 
-  const categoryColors: Record<string, { text: string; bg: string; border: string }> = {
-    strike: { text: "text-red-400", bg: "bg-red-500/15", border: "border-red-500/30" },
-    retaliation: { text: "text-orange-400", bg: "bg-orange-500/15", border: "border-orange-500/30" },
-    announcement: { text: "text-blue-400", bg: "bg-blue-500/15", border: "border-blue-500/30" },
-    casualty: { text: "text-purple-400", bg: "bg-purple-500/15", border: "border-purple-500/30" },
-    "world-reaction": { text: "text-green-400", bg: "bg-green-500/15", border: "border-green-500/30" },
-    breaking: { text: "text-yellow-400", bg: "bg-yellow-500/15", border: "border-yellow-500/30" },
-    "breaking-important": { text: "text-red-400", bg: "bg-red-500/20", border: "border-red-500/40" },
-  };
-
-  const cat = categoryColors[event.category] ?? categoryColors.announcement;
+  const cat = categoryTailwind[event.category] ?? defaultCategoryTailwind;
 
   /* JSON-LD structured data */
   const jsonLd = {
@@ -137,8 +139,18 @@ export default async function EventPage({ params }: Props) {
               href={`/${locale}`}
               className="flex items-center gap-2 text-xs text-zinc-500 hover:text-white transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+                />
               </svg>
               {(dict.common as Record<string, string>).backToTimeline}
             </a>
@@ -152,7 +164,10 @@ export default async function EventPage({ params }: Props) {
         <article className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
           {/* Time & category badges */}
           <div className="flex flex-wrap items-center gap-3 mb-6">
-            <span className="text-red-400 font-mono text-sm font-bold tracking-wider" dir="ltr">
+            <span
+              className="text-red-400 font-mono text-sm font-bold tracking-wider"
+              dir="ltr"
+            >
               <LocalTime timeET={event.timeET} />
             </span>
           </div>
@@ -176,7 +191,9 @@ export default async function EventPage({ params }: Props) {
                     : "text-yellow-400 bg-yellow-500/15 border-yellow-500/30"
                 }`}
               >
-                {confidenceLabel === "disputed" ? "⚠ Disputed" : "? Unconfirmed"}
+                {confidenceLabel === "disputed"
+                  ? "⚠ Disputed"
+                  : "? Unconfirmed"}
               </span>
             )}
           </div>
@@ -198,7 +215,7 @@ export default async function EventPage({ params }: Props) {
           {/* Media */}
           {event.media && event.media.length > 0 && (
             <div className="mb-8">
-              <MediaGallery media={event.media} />
+              <MediaGallery media={event.media} eventHeadline={headline} />
             </div>
           )}
 
@@ -206,11 +223,27 @@ export default async function EventPage({ params }: Props) {
           {event.location && (
             <div id="map" className="mb-8">
               <div className="flex items-center gap-2 mb-3">
-                <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                <svg
+                  className="w-4 h-4 text-red-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
+                  />
                 </svg>
-                <span className="text-sm text-zinc-400">{event.location.name}</span>
+                <span className="text-sm text-zinc-400">
+                  {event.location.name}
+                </span>
               </div>
               <EventMap
                 lat={event.location.lat}
@@ -225,7 +258,9 @@ export default async function EventPage({ params }: Props) {
             <div className="flex flex-col gap-2">
               {event.sources && event.sources.length > 0 ? (
                 <>
-                  <span className="text-xs text-zinc-500">{dict.common.source}s:</span>
+                  <span className="text-xs text-zinc-500">
+                    {dict.common.source}s:
+                  </span>
                   <div className="flex flex-wrap gap-x-4 gap-y-1">
                     {event.sources.map((src, i) => (
                       <a
@@ -237,7 +272,9 @@ export default async function EventPage({ params }: Props) {
                       >
                         {src.name}
                         {src.region && (
-                          <span className="text-zinc-600 ml-1">({src.region})</span>
+                          <span className="text-zinc-600 ml-1">
+                            ({src.region})
+                          </span>
                         )}
                       </a>
                     ))}
@@ -245,7 +282,9 @@ export default async function EventPage({ params }: Props) {
                 </>
               ) : (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-zinc-500">{dict.common.source}:</span>
+                  <span className="text-xs text-zinc-500">
+                    {dict.common.source}:
+                  </span>
                   <a
                     href={event.sourceUrl}
                     target="_blank"
@@ -279,7 +318,9 @@ export default async function EventPage({ params }: Props) {
                   {(dict.common as Record<string, string>).previous}
                 </span>
                 <span className="text-sm text-zinc-400 group-hover:text-white transition-colors line-clamp-2">
-                  {isFr && adjacent.prev.headline_fr ? adjacent.prev.headline_fr : adjacent.prev.headline}
+                  {isFr && adjacent.prev.headline_fr
+                    ? adjacent.prev.headline_fr
+                    : adjacent.prev.headline}
                 </span>
                 <span className="text-[11px] text-zinc-500 font-mono" dir="ltr">
                   <LocalTime timeET={adjacent.prev.timeET} showDate={false} />
@@ -297,7 +338,9 @@ export default async function EventPage({ params }: Props) {
                   {(dict.common as Record<string, string>).next}
                 </span>
                 <span className="text-sm text-zinc-400 group-hover:text-white transition-colors line-clamp-2">
-                  {isFr && adjacent.next.headline_fr ? adjacent.next.headline_fr : adjacent.next.headline}
+                  {isFr && adjacent.next.headline_fr
+                    ? adjacent.next.headline_fr
+                    : adjacent.next.headline}
                 </span>
                 <span className="text-[11px] text-zinc-500 font-mono" dir="ltr">
                   <LocalTime timeET={adjacent.next.timeET} showDate={false} />

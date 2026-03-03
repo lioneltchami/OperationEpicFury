@@ -1,8 +1,8 @@
 "use client";
 
-import type { TimelineEvent, EventCategory } from "@/data/timeline";
 import { LocalTime } from "@/components/ui/LocalTime";
 import { MediaGallery } from "@/components/ui/MediaGallery";
+import type { EventCategory, TimelineEvent } from "@/data/timeline";
 
 const categoryLabels: Record<EventCategory, string> = {
   strike: "Strike",
@@ -103,7 +103,7 @@ export function PublishPreviewContent({
       {/* Media */}
       {event.media && event.media.length > 0 && (
         <div className="pt-1">
-          <MediaGallery media={event.media} />
+          <MediaGallery media={event.media} eventHeadline={event.headline} />
         </div>
       )}
 
@@ -128,10 +128,7 @@ export function PublishPreviewContent({
 
       {/* French translation preview */}
       {event.headline_fr && (
-        <div
-          className="pt-3 border-t border-zinc-800/60 space-y-2"
-          dir="ltr"
-        >
+        <div className="pt-3 border-t border-zinc-800/60 space-y-2" dir="ltr">
           <span
             className="text-[10px] uppercase tracking-wider text-zinc-600 font-mono"
             dir="ltr"

@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
-import { useLocale } from "@/i18n/LocaleContext";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  getUserSubscription,
   subscribeUser,
   unsubscribeUser,
   updateUserCategories,
-  getUserSubscription,
 } from "@/app/actions/push";
+import { useLocale } from "@/i18n/LocaleContext";
 
 function CircleCheck({
   checked,
@@ -27,8 +27,18 @@ function CircleCheck({
       }`}
     >
       {checked && (
-        <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        <svg
+          className="w-2.5 h-2.5 text-white"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={3}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M5 13l4 4L19 7"
+          />
         </svg>
       )}
       {indeterminate && !checked && (
@@ -108,14 +118,51 @@ export function SubscribeModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
+  // Focus trap: move focus into modal on open
+  useEffect(() => {
+    if (!open) return;
+    const modal = overlayRef.current;
+    if (!modal) return;
+
+    const focusableSelector =
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const focusableElements =
+      modal.querySelectorAll<HTMLElement>(focusableSelector);
+    if (focusableElements.length > 0) {
+      focusableElements[0].focus();
+    }
+
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Tab") return;
+      const focusable = modal!.querySelectorAll<HTMLElement>(focusableSelector);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
+
   // Register SW and check subscription on mount
   useEffect(() => {
     if (!open) return;
 
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
       const ua = navigator.userAgent;
-      const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-      const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as unknown as { standalone?: boolean }).standalone;
+      const isIOS =
+        /iPad|iPhone|iPod/.test(ua) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const isStandalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (navigator as unknown as { standalone?: boolean }).standalone;
       setState(isIOS && !isStandalone ? "ios-homescreen" : "not-supported");
       return;
     }
@@ -239,6 +286,9 @@ export function SubscribeModal({
   return (
     <div
       ref={overlayRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="subscribe-modal-title"
       onClick={(e) => {
         if (e.target === overlayRef.current) onClose();
       }}
@@ -258,9 +308,15 @@ export function SubscribeModal({
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/60">
-          <h2 className="text-base font-bold text-white">{t.title}</h2>
+          <h2
+            id="subscribe-modal-title"
+            className="text-base font-bold text-white"
+          >
+            {t.title}
+          </h2>
           <button
             onClick={onClose}
+            aria-label="Close"
             className="p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-zinc-800 transition-all"
           >
             <svg
@@ -319,7 +375,10 @@ export function SubscribeModal({
               >
                 <CircleCheck
                   checked={selected.length === ALL_CATEGORIES.length}
-                  indeterminate={selected.length > 0 && selected.length < ALL_CATEGORIES.length}
+                  indeterminate={
+                    selected.length > 0 &&
+                    selected.length < ALL_CATEGORIES.length
+                  }
                 />
                 <span className="text-sm text-white font-medium">
                   {t.selectAll}
@@ -343,7 +402,10 @@ export function SubscribeModal({
                           onClick={() => toggleGroup(group.categories)}
                           className="flex-shrink-0"
                         >
-                          <CircleCheck checked={allSel} indeterminate={someSel} />
+                          <CircleCheck
+                            checked={allSel}
+                            indeterminate={someSel}
+                          />
                         </button>
                         <button
                           onClick={() => toggleExpand(group.key)}
