@@ -9,7 +9,11 @@ export async function dispatchGitHubAction(
   const ghToken = process.env.GH_PAT;
   if (!ghToken) return false;
 
-  const repo = process.env.GITHUB_REPO ?? "FZ1010/OperationEpicFury";
+  const repo = process.env.GITHUB_REPO;
+  if (!repo) {
+    console.error("GITHUB_REPO env var is not set");
+    return false;
+  }
   const url = `https://api.github.com/repos/${repo}/dispatches`;
 
   const res = await fetch(url, {

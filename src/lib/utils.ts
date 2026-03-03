@@ -5,7 +5,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const SITE_URL = process.env.SITE_URL ?? "https://epicfuryops.info";
+export const SITE_URL = process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "";
+export const GITHUB_REPO_URL = process.env.NEXT_PUBLIC_GITHUB_REPO_URL ?? "";
 export const SITE_NAME = "Operation Epic Fury";
 export const SITE_NAME_FR = "Opération Epic Fury";
 export const SITE_DESCRIPTION =

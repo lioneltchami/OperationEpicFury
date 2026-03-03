@@ -173,124 +173,140 @@ export async function POST(req: NextRequest) {
   const messageId = message.message_id;
   const userId = String(message.from?.id ?? "");
 
-  // 3. Check allowlist
-  const allowed = (process.env.TELEGRAM_ALLOWED_USERS ?? "")
+  // 3. Determine if this is an auto-monitored channel post
+  const isChannelPost = !!update.channel_post;
+  const allowedChannels = (process.env.TELEGRAM_ALLOWED_CHANNELS ?? "")
     .split(",")
-    .map((s: string) => s.trim());
-  if (!allowed.includes(userId)) {
-    await sendMessage(chatId, "403 Forbidden", messageId);
-    return NextResponse.json({ ok: true });
-  }
+    .map((s: string) => s.trim())
+    .filter(Boolean);
 
-  // 3b. Handle /info command — dump replied-to message details
-  const cmdText = (message.text ?? "").trim();
-  if (cmdText === "/info") {
-    const target = message.reply_to_message;
-    if (!target) {
-      await sendMessage(chatId, "Reply to a message with /info to inspect it.", messageId);
+  if (isChannelPost) {
+    // Channel posts have no `from` user — check against channel allowlist instead
+    if (!allowedChannels.includes(String(chatId))) {
+      // Silently ignore posts from non-allowlisted channels (can't DM a channel)
       return NextResponse.json({ ok: true });
     }
-    const dump = JSON.stringify(target, null, 2);
-    // Telegram max message length is 4096 — truncate if needed
-    const truncated = dump.length > 4000 ? dump.slice(0, 4000) + "\n..." : dump;
-    await sendMessage(chatId, `<pre>${escapeHtml(truncated)}</pre>`, messageId, "HTML");
-    return NextResponse.json({ ok: true });
-  }
-
-  // 3c. Handle /x command — process a tweet URL
-  if (cmdText.startsWith("/x ")) {
-    const tweetUrl = cmdText.slice(3).trim();
-    if (!TWEET_URL_RE.test(tweetUrl)) {
-      await sendMessage(chatId, "Invalid URL. Use: /x https://x.com/user/status/123", messageId);
+    // ✅ Allowed channel — fall through to process as news (skip user commands)
+  } else {
+    // 3b. Normal user message — check user allowlist
+    const allowed = (process.env.TELEGRAM_ALLOWED_USERS ?? "")
+      .split(",")
+      .map((s: string) => s.trim());
+    if (!allowed.includes(userId)) {
+      await sendMessage(chatId, "403 Forbidden", messageId);
       return NextResponse.json({ ok: true });
     }
 
-    const tweet = await fetchTweet(tweetUrl);
-    if (!tweet) {
-      await sendMessage(chatId, "Failed to fetch tweet. Try again.", messageId);
+    // 3c. Handle /info command — dump replied-to message details (user only)
+    const cmdText = (message.text ?? "").trim();
+    if (cmdText === "/info") {
+      const target = message.reply_to_message;
+      if (!target) {
+        await sendMessage(chatId, "Reply to a message with /info to inspect it.", messageId);
+        return NextResponse.json({ ok: true });
+      }
+      const dump = JSON.stringify(target, null, 2);
+      const truncated = dump.length > 4000 ? dump.slice(0, 4000) + "\n..." : dump;
+      await sendMessage(chatId, `<pre>${escapeHtml(truncated)}</pre>`, messageId, "HTML");
       return NextResponse.json({ ok: true });
     }
 
-    if (!process.env.GH_PAT) {
-      await sendMessage(chatId, "Bot misconfigured (no GH_PAT).", messageId);
+
+    // 3c. Handle /x command — process a tweet URL
+    if (cmdText.startsWith("/x ")) {
+      const tweetUrl = cmdText.slice(3).trim();
+      if (!TWEET_URL_RE.test(tweetUrl)) {
+        await sendMessage(chatId, "Invalid URL. Use: /x https://x.com/user/status/123", messageId);
+        return NextResponse.json({ ok: true });
+      }
+
+      const tweet = await fetchTweet(tweetUrl);
+      if (!tweet) {
+        await sendMessage(chatId, "Failed to fetch tweet. Try again.", messageId);
+        return NextResponse.json({ ok: true });
+      }
+
+      if (!process.env.GH_PAT) {
+        await sendMessage(chatId, "Bot misconfigured (no GH_PAT).", messageId);
+        return NextResponse.json({ ok: true });
+      }
+
+      const dispatchText = `[Tweet by ${tweet.authorName} (@${tweet.authorHandle})]\n\n${tweet.text}`;
+      const tweetMedia = tweet.media.length > 0 ? JSON.stringify(tweet.media) : undefined;
+
+      const ok = await dispatchGitHubAction("tweet_news", {
+        text: dispatchText,
+        urls: tweetUrl,
+        timestamp_et: tweet.timestampET,
+        chat_id: chatId,
+        message_id: messageId,
+        media: tweetMedia,
+        source_url: tweetUrl,
+      });
+
+      if (!ok) {
+        await sendMessage(chatId, "Failed to dispatch. Try again.", messageId);
+        return NextResponse.json({ ok: true });
+      }
+
+      await sendMessage(chatId, `Processing tweet by @${tweet.authorHandle}...`, messageId);
       return NextResponse.json({ ok: true });
     }
 
-    const dispatchText = `[Tweet by ${tweet.authorName} (@${tweet.authorHandle})]\n\n${tweet.text}`;
-    const tweetMedia = tweet.media.length > 0 ? JSON.stringify(tweet.media) : undefined;
+    // 3d. Handle /news command — process an external news URL
+    if (cmdText.startsWith("/news ")) {
+      const newsUrl = cmdText.slice(6).trim();
+      if (TWEET_URL_RE.test(newsUrl)) {
+        await sendMessage(chatId, "That's a tweet URL. Use /x instead.", messageId);
+        return NextResponse.json({ ok: true });
+      }
+      let parsed: URL;
+      try {
+        parsed = new URL(newsUrl);
+      } catch {
+        await sendMessage(chatId, "Invalid URL. Use: /news https://reuters.com/...", messageId);
+        return NextResponse.json({ ok: true });
+      }
+      if (!parsed.protocol.startsWith("http")) {
+        await sendMessage(chatId, "Invalid URL. Must start with http:// or https://", messageId);
+        return NextResponse.json({ ok: true });
+      }
 
-    const ok = await dispatchGitHubAction("tweet_news", {
-      text: dispatchText,
-      urls: tweetUrl,
-      timestamp_et: tweet.timestampET,
-      chat_id: chatId,
-      message_id: messageId,
-      media: tweetMedia,
-      source_url: tweetUrl,
-    });
+      if (!process.env.GH_PAT) {
+        await sendMessage(chatId, "Bot misconfigured (no GH_PAT).", messageId);
+        return NextResponse.json({ ok: true });
+      }
 
-    if (!ok) {
-      await sendMessage(chatId, "Failed to dispatch. Try again.", messageId);
+      const ok = await dispatchGitHubAction("external_news", {
+        url: newsUrl,
+        chat_id: chatId,
+        message_id: messageId,
+      });
+
+      if (!ok) {
+        await sendMessage(chatId, "Failed to dispatch. Try again.", messageId);
+        return NextResponse.json({ ok: true });
+      }
+
+      await sendMessage(chatId, `Processing news article: ${parsed.hostname}...`, messageId);
       return NextResponse.json({ ok: true });
     }
 
-    await sendMessage(chatId, `Processing tweet by @${tweet.authorHandle}...`, messageId);
-    return NextResponse.json({ ok: true });
-  }
-
-  // 3d. Handle /news command — process an external news URL
-  if (cmdText.startsWith("/news ")) {
-    const newsUrl = cmdText.slice(6).trim();
-    if (TWEET_URL_RE.test(newsUrl)) {
-      await sendMessage(chatId, "That's a tweet URL. Use /x instead.", messageId);
-      return NextResponse.json({ ok: true });
-    }
-    let parsed: URL;
-    try {
-      parsed = new URL(newsUrl);
-    } catch {
-      await sendMessage(chatId, "Invalid URL. Use: /news https://reuters.com/...", messageId);
-      return NextResponse.json({ ok: true });
-    }
-    if (!parsed.protocol.startsWith("http")) {
-      await sendMessage(chatId, "Invalid URL. Must start with http:// or https://", messageId);
-      return NextResponse.json({ ok: true });
-    }
-
-    if (!process.env.GH_PAT) {
-      await sendMessage(chatId, "Bot misconfigured (no GH_PAT).", messageId);
-      return NextResponse.json({ ok: true });
-    }
-
-    const ok = await dispatchGitHubAction("external_news", {
-      url: newsUrl,
-      chat_id: chatId,
-      message_id: messageId,
-    });
-
-    if (!ok) {
-      await sendMessage(chatId, "Failed to dispatch. Try again.", messageId);
-      return NextResponse.json({ ok: true });
-    }
-
-    await sendMessage(chatId, `Processing news article: ${parsed.hostname}...`, messageId);
-    return NextResponse.json({ ok: true });
-  }
-
-  // 3e. If message has URLs but no command and is not forwarded, reject
-  const hasUrls = (message.entities ?? message.caption_entities ?? []).some(
-    (e: TelegramEntity) => e.type === "url" || e.type === "text_link",
-  );
-  if (hasUrls && !message.forward_origin) {
-    await sendMessage(
-      chatId,
-      "Use /news <url> for news articles or /x <url> for tweets.",
-      messageId,
+    // 3e. If message has URLs but no command and is not forwarded, reject
+    const hasUrls = (message.entities ?? message.caption_entities ?? []).some(
+      (e: TelegramEntity) => e.type === "url" || e.type === "text_link",
     );
-    return NextResponse.json({ ok: true });
-  }
+    if (hasUrls && !message.forward_origin) {
+      await sendMessage(
+        chatId,
+        "Use /news <url> for news articles or /x <url> for tweets.",
+        messageId,
+      );
+      return NextResponse.json({ ok: true });
+    }
+  } // end else (user message)
 
-  // 4. Extract text, URLs, and media
+  // 4. Extract text, URLs, and media (shared: channel posts + user forwarded messages)
   const text = message.text ?? message.caption ?? "";
   const urls: string[] = [];
 
@@ -317,6 +333,11 @@ export async function POST(req: NextRequest) {
     forwardMessageLink = `https://t.me/${message.forward_origin.chat.username}/${message.forward_origin.message_id}`;
   }
 
+  // For direct channel posts, use the channel's t.me link as source
+  if (isChannelPost && message.chat.username) {
+    forwardMessageLink = forwardMessageLink ?? `https://t.me/${message.chat.username}/${messageId}`;
+  }
+
   // Extract timestamp from forwarded message and convert to ET
   const forwardUnix: number | undefined =
     message.forward_origin?.date ?? message.forward_date ?? message.date;
@@ -331,20 +352,26 @@ export async function POST(req: NextRequest) {
 
     // If this message has no caption, it's a non-primary group member — just buffer
     if (!text) {
-      await sendMessage(chatId, `Media received (${count} in group)`, messageId);
+      if (!isChannelPost) {
+        await sendMessage(chatId, `Media received (${count} in group)`, messageId);
+      }
       return NextResponse.json({ ok: true });
     }
   }
 
   // 6. Reject empty messages (no text, no URLs, no media)
   if (!text && urls.length === 0 && !mediaItem) {
-    await sendMessage(chatId, "Send a news link or forward a news message.", messageId);
+    if (!isChannelPost) {
+      await sendMessage(chatId, "Send a news link or forward a news message.", messageId);
+    }
     return NextResponse.json({ ok: true });
   }
 
   // 7. Trigger GitHub Actions
   if (!process.env.GH_PAT) {
-    await sendMessage(chatId, "Bot misconfigured (no GH_PAT).", messageId);
+    if (!isChannelPost) {
+      await sendMessage(chatId, "Bot misconfigured (no GH_PAT).", messageId);
+    }
     return NextResponse.json({ ok: true });
   }
 
@@ -370,11 +397,15 @@ export async function POST(req: NextRequest) {
   });
 
   if (!ok) {
-    await sendMessage(chatId, "Failed to dispatch. Try again.", messageId);
+    if (!isChannelPost) {
+      await sendMessage(chatId, "Failed to dispatch. Try again.", messageId);
+    }
     return NextResponse.json({ ok: true });
   }
 
   const sourceNote = mediaItem ? " (with media)" : "";
-  await sendMessage(chatId, `Processing your news${sourceNote}...`, messageId);
+  if (!isChannelPost) {
+    await sendMessage(chatId, `Processing your news${sourceNote}...`, messageId);
+  }
   return NextResponse.json({ ok: true });
 }

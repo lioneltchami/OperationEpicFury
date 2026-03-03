@@ -46,3 +46,7 @@ next-env.d.ts
 
 .vercel
 .env*.local
+
+# AI agent files — personal, not part of the project
+.claude/
+CLAUDE.md
