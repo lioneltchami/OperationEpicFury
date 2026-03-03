@@ -1,10 +1,10 @@
-import { getRedis } from "@/lib/redis";
-import { getPublishedEvents } from "@/lib/kv";
 import type { TimelineEvent } from "@/data/timeline";
+import { getPublishedEvents } from "@/lib/kv";
+import { getRedis } from "@/lib/redis";
 
 const INDEX_PREFIX = "search:tok:";
 
-function tokenize(text: string): string[] {
+export function tokenize(text: string): string[] {
   return text
     .toLowerCase()
     .replace(/[^\w\s]/g, " ")
@@ -12,8 +12,15 @@ function tokenize(text: string): string[] {
     .filter((t) => t.length >= 2);
 }
 
-function eventTokens(event: TimelineEvent): string[] {
-  const text = [event.headline, event.body, event.headline_fr, event.body_fr, event.source, event.category]
+export function eventTokens(event: TimelineEvent): string[] {
+  const text = [
+    event.headline,
+    event.body,
+    event.headline_fr,
+    event.body_fr,
+    event.source,
+    event.category,
+  ]
     .filter(Boolean)
     .join(" ");
   return [...new Set(tokenize(text))];
@@ -71,7 +78,9 @@ async function searchViaIndex(
   redis: ReturnType<typeof getRedis>,
 ): Promise<TimelineEvent[]> {
   // Get event IDs for each token
-  const sets = await Promise.all(tokens.map((t) => redis.smembers(`${INDEX_PREFIX}${t}`)));
+  const sets = await Promise.all(
+    tokens.map((t) => redis.smembers(`${INDEX_PREFIX}${t}`)),
+  );
 
   // Score by number of matching tokens
   const scores = new Map<string, number>();
@@ -101,17 +110,30 @@ async function searchViaIndex(
   }
 
   return events
-    .sort((a, b) => b.score - a.score || b.event.timeET.localeCompare(a.event.timeET))
+    .sort(
+      (a, b) =>
+        b.score - a.score || b.event.timeET.localeCompare(a.event.timeET),
+    )
     .slice(0, limit)
     .map((s) => s.event);
 }
 
-async function searchFullScan(tokens: string[], limit: number): Promise<TimelineEvent[]> {
+async function searchFullScan(
+  tokens: string[],
+  limit: number,
+): Promise<TimelineEvent[]> {
   const events = await getPublishedEvents();
 
   return events
     .map((event) => {
-      const haystack = [event.headline, event.body, event.headline_fr, event.body_fr, event.source, event.category]
+      const haystack = [
+        event.headline,
+        event.body,
+        event.headline_fr,
+        event.body_fr,
+        event.source,
+        event.category,
+      ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
@@ -122,7 +144,10 @@ async function searchFullScan(tokens: string[], limit: number): Promise<Timeline
       return { event, score };
     })
     .filter((s) => s.score > 0)
-    .sort((a, b) => b.score - a.score || b.event.timeET.localeCompare(a.event.timeET))
+    .sort(
+      (a, b) =>
+        b.score - a.score || b.event.timeET.localeCompare(a.event.timeET),
+    )
     .slice(0, limit)
     .map((s) => s.event);
 }

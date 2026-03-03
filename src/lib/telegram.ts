@@ -7,7 +7,7 @@ export async function sendMessage(
   replyToMessageId?: number,
   parseMode: "Markdown" | "HTML" = "Markdown",
 ) {
-  await fetch(`${TELEGRAM_API}/sendMessage`, {
+  const res = await fetch(`${TELEGRAM_API}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -17,10 +17,16 @@ export async function sendMessage(
       ...(replyToMessageId && { reply_to_message_id: replyToMessageId }),
     }),
   });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "(unreadable)");
+    throw new Error(`Telegram sendMessage failed ${res.status}: ${body}`);
+  }
 }
 
 export async function getFile(fileId: string): Promise<string> {
-  const res = await fetch(`${TELEGRAM_API}/getFile?file_id=${encodeURIComponent(fileId)}`);
+  const res = await fetch(
+    `${TELEGRAM_API}/getFile?file_id=${encodeURIComponent(fileId)}`,
+  );
   if (!res.ok) throw new Error(`getFile failed: ${res.status}`);
   const data = await res.json();
   return data.result.file_path as string;

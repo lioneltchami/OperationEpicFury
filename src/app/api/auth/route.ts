@@ -1,7 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { generateSessionToken, createSession, destroySession, COOKIE_NAME, SESSION_TTL } from "@/lib/auth";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
+import { type NextRequest, NextResponse } from "next/server";
+import {
+  COOKIE_NAME,
+  createSession,
+  destroySession,
+  generateSessionToken,
+  SESSION_TTL,
+} from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const WINDOW_SECONDS = 15 * 60; // 15 minutes
@@ -35,7 +42,16 @@ export async function POST(req: NextRequest) {
   }
 
   const { password } = (await req.json()) as { password?: string };
-  if (!password || password !== process.env.ADMIN_PASSWORD) {
+  const adminPw = process.env.ADMIN_PASSWORD ?? "";
+  if (!password || !adminPw) {
+    return NextResponse.json({ error: "Invalid password" }, { status: 401 });
+  }
+  const candidateBuf = Buffer.from(password, "utf8");
+  const adminBuf = Buffer.from(adminPw, "utf8");
+  const match =
+    candidateBuf.length === adminBuf.length &&
+    timingSafeEqual(candidateBuf, adminBuf);
+  if (!match) {
     return NextResponse.json({ error: "Invalid password" }, { status: 401 });
   }
 

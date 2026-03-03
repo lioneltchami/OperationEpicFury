@@ -1,6 +1,6 @@
+import type { MediaItem, TimelineEvent } from "@/data/timeline";
 import { getRedis } from "@/lib/redis";
-import { indexEvent, deindexEvent } from "@/lib/search";
-import type { TimelineEvent, MediaItem } from "@/data/timeline";
+import { deindexEvent, indexEvent } from "@/lib/search";
 
 // New structure:
 //   HASH  "events:data"          — id → JSON(event)
@@ -15,7 +15,7 @@ const SLUG_KEY = "events:slugs";
 const LEGACY_KEY = "timeline:events";
 
 /** Convert timeET string to a numeric score for sorted set ordering. */
-function timeScore(timeET: string | undefined): number {
+export function timeScore(timeET: string | undefined): number {
   if (!timeET) return 0;
   // "YYYY-MM-DD HH:MM" → remove non-digits → number
   // e.g. "2026-03-01 14:30" → 202603011430
@@ -58,7 +58,9 @@ export async function getAllEvents(): Promise<TimelineEvent[]> {
 
 export async function getPublishedEvents(): Promise<TimelineEvent[]> {
   const events = await getAllEvents();
-  return events.filter((e) => e.timeET && (!e.status || e.status === "published"));
+  return events.filter(
+    (e) => e.timeET && (!e.status || e.status === "published"),
+  );
 }
 
 export async function getPublishedEventsPaginated(
