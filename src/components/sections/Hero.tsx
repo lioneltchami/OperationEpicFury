@@ -4,6 +4,7 @@ import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { SplitText } from "@/components/ui/SplitText";
 import type { Dictionary } from "@/i18n";
 import type { Locale } from "@/i18n/config";
+import { GITHUB_REPO_URL } from "@/lib/utils";
 
 type Props = {
   dict: Dictionary;
@@ -19,7 +20,7 @@ export const Hero = ({ dict, locale }: Props) => {
       {/* Language switcher + GitHub */}
       <div className="absolute top-4 ltr:right-4 rtl:left-4 z-20 flex items-center gap-3">
         <a
-          href="https://github.com/FZ1010/OperationEpicFury"
+          href={GITHUB_REPO_URL || "https://github.com"}
           target="_blank"
           rel="noopener noreferrer"
           className="text-zinc-600 hover:text-white transition-colors p-1.5"
@@ -89,7 +90,7 @@ export const Hero = ({ dict, locale }: Props) => {
         {/* Subtitle */}
         <p
           className="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto mb-8 leading-relaxed"
-          style={{ animation: "fade-in 0.8s ease-out 1s both" }}
+          style={{ animation: "fade-in 0.8s ease-out 0.6s both" }}
         >
           {dict.hero.subtitle}
         </p>
@@ -97,7 +98,7 @@ export const Hero = ({ dict, locale }: Props) => {
         {/* Operation names */}
         <div
           className={`flex flex-wrap items-center justify-center gap-4 text-xs font-headline font-bold tracking-widest text-zinc-500 uppercase`}
-          style={{ animation: "fade-in-down 0.6s ease-out 1.4s both" }}
+          style={{ animation: "fade-in-down 0.6s ease-out 0.8s both" }}
         >
           <span className="px-3 py-1.5 border border-zinc-800 rounded">
             {dict.hero.opUS}
@@ -113,7 +114,7 @@ export const Hero = ({ dict, locale }: Props) => {
         {/* Scroll indicator */}
         <div
           className="mt-16"
-          style={{ animation: "fade-in 0.5s ease-out 1.8s both" }}
+          style={{ animation: "fade-in 0.5s ease-out 1.0s both" }}
         >
           <div className="flex flex-col items-center gap-2 text-zinc-600 animate-bounce-scroll">
             <span className={`text-xs ${monoClass} tracking-widest uppercase`}>

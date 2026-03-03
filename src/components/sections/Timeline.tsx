@@ -1,18 +1,27 @@
 "use client";
 
-import React, { useState, useCallback, useRef, useEffect } from "react";
 import { m } from "framer-motion";
-import { TracingBeam } from "@/components/ui/TracingBeam";
-import { TimelineEntry } from "@/components/ui/TimelineEntry";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { SearchBar } from "@/components/ui/SearchBar";
-import type { TimelineEvent, EventCategory, SourceRegion } from "@/data/timeline";
+import { TimelineEntry } from "@/components/ui/TimelineEntry";
+import { TracingBeam } from "@/components/ui/TracingBeam";
+import type {
+  EventCategory,
+  SourceRegion,
+  TimelineEvent,
+} from "@/data/timeline";
 import { useLocale } from "@/i18n/LocaleContext";
 
 const EAGER_COUNT = 20;
 
 const CATEGORIES: EventCategory[] = [
-  "strike", "retaliation", "announcement", "casualty",
-  "world-reaction", "breaking", "breaking-important",
+  "strike",
+  "retaliation",
+  "announcement",
+  "casualty",
+  "world-reaction",
+  "breaking",
+  "breaking-important",
 ];
 
 const SOURCE_REGIONS: { key: SourceRegion; labelKey: string }[] = [
@@ -29,7 +38,11 @@ interface TimelineProps {
   pageSize: number;
 }
 
-export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps) => {
+export const Timeline = ({
+  initialEvents,
+  totalEvents,
+  pageSize,
+}: TimelineProps) => {
   const { dict, locale } = useLocale();
   const isFr = locale === "fr";
   const monoClass = isFr ? "" : "font-mono";
@@ -48,9 +61,16 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
   useEffect(() => {
     if (!("caches" in window) || !initialEvents.length) return;
     caches.open("data-v1").then((cache) => {
-      const url = "/api/events/published?offset=0&limit=" + initialEvents.length;
-      const body = JSON.stringify({ events: [...initialEvents].reverse(), total: totalEvents });
-      cache.put(url, new Response(body, { headers: { "Content-Type": "application/json" } }));
+      const url =
+        "/api/events/published?offset=0&limit=" + initialEvents.length;
+      const body = JSON.stringify({
+        events: [...initialEvents].reverse(),
+        total: totalEvents,
+      });
+      cache.put(
+        url,
+        new Response(body, { headers: { "Content-Type": "application/json" } }),
+      );
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -128,7 +148,7 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
         <div className="flex flex-wrap justify-center gap-2 mb-4">
           <button
             onClick={() => setFilter(null)}
-            className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors ${
+            className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:outline-none ${
               !filter
                 ? "bg-red-500/20 text-red-400 border-red-500/40"
                 : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
@@ -140,7 +160,7 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
             <button
               key={cat}
               onClick={() => setFilter(filter === cat ? null : cat)}
-              className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors ${
+              className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:outline-none ${
                 filter === cat
                   ? "bg-red-500/20 text-red-400 border-red-500/40"
                   : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
@@ -155,7 +175,7 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
         <div className="flex flex-wrap justify-center gap-2 mb-12">
           <button
             onClick={() => setRegionFilter(null)}
-            className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors ${
+            className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:outline-none ${
               !regionFilter
                 ? "bg-zinc-700/40 text-zinc-300 border-zinc-600/40"
                 : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
@@ -166,8 +186,10 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
           {SOURCE_REGIONS.map((r) => (
             <button
               key={r.key}
-              onClick={() => setRegionFilter(regionFilter === r.key ? null : r.key)}
-              className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors ${
+              onClick={() =>
+                setRegionFilter(regionFilter === r.key ? null : r.key)
+              }
+              className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:outline-none ${
                 regionFilter === r.key
                   ? "bg-zinc-700/40 text-zinc-300 border-zinc-600/40"
                   : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
@@ -186,7 +208,10 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
                 key={event.id}
                 style={
                   i >= EAGER_COUNT
-                    ? { contentVisibility: "auto", containIntrinsicSize: "auto 400px" }
+                    ? {
+                        contentVisibility: "auto",
+                        containIntrinsicSize: "auto 400px",
+                      }
                     : undefined
                 }
               >
@@ -195,7 +220,9 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
             ))}
           </TracingBeam>
         ) : (
-          <p className="text-center text-zinc-500 py-12">{timelineDict.noResults}</p>
+          <p className="text-center text-zinc-500 py-12">
+            {timelineDict.noResults}
+          </p>
         )}
 
         {/* Infinite scroll sentinel */}

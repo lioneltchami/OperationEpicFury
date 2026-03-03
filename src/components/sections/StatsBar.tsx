@@ -36,7 +36,7 @@ export const StatsBar = ({ stats }: StatsBarProps) => {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-6"
+          className="card-tactical border border-white/[0.04] rounded-sm p-4 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-6"
         >
           {statConfig.map((stat, i) => (
             <m.div

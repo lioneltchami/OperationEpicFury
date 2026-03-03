@@ -1,9 +1,8 @@
 "use client";
 
-import { m } from "framer-motion";
 import React from "react";
 import { useLocale } from "@/i18n/LocaleContext";
-import { SITE_URL } from "@/lib/utils";
+import { SITE_URL, GITHUB_REPO_URL } from "@/lib/utils";
 
 const sources = [
   {
@@ -55,11 +54,7 @@ export const Footer = () => {
   return (
     <footer className="relative py-16 bg-black border-t border-white/5">
       <div className="max-w-4xl mx-auto px-6">
-        <m.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-        >
+        <div>
           <h3 className="text-lg font-bold text-white mb-6">
             {dict.footer.sources}
           </h3>
@@ -117,7 +112,7 @@ export const Footer = () => {
                 </svg>
               </a>
               <a
-                href="https://github.com/FZ1010/OperationEpicFury"
+                href={GITHUB_REPO_URL || "https://github.com"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-zinc-500 hover:text-white transition-colors"
@@ -163,7 +158,7 @@ export const Footer = () => {
             </button>
           </div>
           {/* eslint-enable @next/next/no-html-link-for-pages */}
-        </m.div>
+        </div>
       </div>
     </footer>
   );

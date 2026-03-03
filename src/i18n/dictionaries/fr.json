@@ -3,7 +3,7 @@
     "date": "OPÉRATION EPIC FURY",
     "headline1": "OPÉRATION",
     "headline2": "EPIC FURY",
-    "subtitle": "Les États-Unis et Israël ont lancé des frappes coordonnées contre l'Iran dans la plus grande opération militaire au Moyen-Orient depuis l'invasion de l'Irak en 2003.",
+    "subtitle": "Couverture complète des frappes coordonnées américano-israéliennes sur l'Iran. Chaque événement. Chaque source. Minute par minute.",
     "opUS": "US : EPIC FURY",
     "opIsrael": "ISRAËL : ROARING LION",
     "opIran": "IRAN : TRUE PROMISE 4",
@@ -51,7 +51,7 @@
   },
   "footer": {
     "sources": "Sources",
-    "tagline": "epicfuryops.info — Chronologie Opération Epic Fury",
+    "tagline": "Chronologie Opération Epic Fury",
     "disclaimer": "Toutes les informations proviennent de grands médias. Ceci est un projet de documentation.",
     "exportJson": "Exporter JSON",
     "exportCsv": "Exporter CSV",
@@ -75,7 +75,8 @@
     "next": "Suivant",
     "readMore": "Lire la suite",
     "search": "Rechercher...",
-    "searchLabel": "Rechercher"
+    "searchLabel": "Rechercher",
+    "noResults": "Aucun resultat"
   },
   "notifications": {
     "title": "Restez informé",

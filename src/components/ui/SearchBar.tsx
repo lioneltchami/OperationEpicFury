@@ -11,6 +11,7 @@ export const SearchBar = () => {
   const [results, setResults] = useState<TimelineEvent[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+  const [noResults, setNoResults] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -18,6 +19,7 @@ export const SearchBar = () => {
     if (q.length < 2) {
       setResults([]);
       setOpen(false);
+      setNoResults(false);
       return;
     }
     try {
@@ -27,7 +29,13 @@ export const SearchBar = () => {
       if (res.ok) {
         const data = await res.json();
         setResults(data.events);
-        setOpen(data.events.length > 0);
+        if (data.events.length === 0) {
+          setNoResults(true);
+          setOpen(false);
+        } else {
+          setNoResults(false);
+          setOpen(true);
+        }
       }
     } catch {
       /* ignore */
@@ -104,6 +112,12 @@ export const SearchBar = () => {
           aria-autocomplete="list"
         />
       </div>
+
+      {noResults && query.length >= 2 && (
+        <p className="text-center text-zinc-500 text-xs mt-2 font-mono">
+          {dict.common.noResults}
+        </p>
+      )}
 
       {open && results.length > 0 && (
         <ul
