@@ -1,5 +1,5 @@
 import type { MediaItem, TimelineEvent } from "@/data/timeline";
-import { getRedis } from "@/lib/redis";
+import { getRedis, isRedisAvailable } from "@/lib/redis";
 import { deindexEvent, indexEvent } from "@/lib/search";
 
 // New structure:
@@ -25,6 +25,7 @@ export function timeScore(timeET: string | undefined): number {
 // ─── Read operations ───
 
 export async function getAllEvents(): Promise<TimelineEvent[]> {
+  if (!isRedisAvailable()) return [];
   const redis = getRedis();
 
   // Check if new structure exists
@@ -67,6 +68,7 @@ export async function getPublishedEventsPaginated(
   offset: number,
   limit: number,
 ): Promise<{ events: TimelineEvent[]; total: number }> {
+  if (!isRedisAvailable()) return { events: [], total: 0 };
   const redis = getRedis();
 
   const ids = await redis.zrevrange(INDEX_KEY, 0, -1);
@@ -103,6 +105,7 @@ export async function getDraftEvents(): Promise<TimelineEvent[]> {
 export async function getEventById(
   id: string,
 ): Promise<TimelineEvent | undefined> {
+  if (!isRedisAvailable()) return undefined;
   const redis = getRedis();
 
   // Try new structure first (O(1))
@@ -119,6 +122,7 @@ export async function getEventById(
 export async function getEventBySlug(
   slug: string,
 ): Promise<TimelineEvent | undefined> {
+  if (!isRedisAvailable()) return undefined;
   const redis = getRedis();
 
   // Try slug index first (O(1))
