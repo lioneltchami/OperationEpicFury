@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 import { getEventBySlug } from "@/lib/kv";
-import { SITE_URL } from "@/lib/utils";
+import { SITE_URL, SITE_NAME } from "@/lib/utils";
 
 export const runtime = "edge";
 
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
             fontFamily: "sans-serif",
           }}
         >
-          <div style={{ fontSize: 48, fontWeight: 900 }}>Operation Epic Fury</div>
+          <div style={{ fontSize: 48, fontWeight: 900 }}>{ SITE_NAME }</div>
           <div style={{ fontSize: 20, color: "#ef4444", marginTop: 12 }}>
             Minute-by-minute timeline
           </div>
@@ -106,7 +106,7 @@ export async function GET(req: NextRequest) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
             <div style={{ fontSize: 28, fontWeight: 900, color: "white" }}>
-              Operation Epic Fury
+              {SITE_NAME}
             </div>
             <div style={{ fontSize: 14, color: "#71717a" }}>
               {new URL(SITE_URL).host}

@@ -24,11 +24,10 @@ const vazirmatn = Vazirmatn({
   display: "swap",
 });
 
-import { SITE_URL } from "@/lib/utils";
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/utils";
 
-const title = "Operation Epic Fury | Timeline";
-const description =
-  "A minute-by-minute timeline of Operation Epic Fury — the US-Israel strikes on Iran.";
+const title = `${SITE_NAME} | Timeline`;
+const description = SITE_DESCRIPTION;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -40,11 +39,11 @@ export const metadata: Metadata = {
     languages: { en: "/en", fa: "/fa" },
     types: {
       "application/rss+xml": [
-        { url: "/api/rss", title: "Operation Epic Fury (English)" },
+        { url: "/api/rss", title: `${SITE_NAME} (English)` },
         { url: "/api/rss/fa", title: "عملیات خشم حماسی (فارسی)" },
       ],
       "application/atom+xml": [
-        { url: "/api/atom", title: "Operation Epic Fury — Atom (English)" },
+        { url: "/api/atom", title: `${SITE_NAME} — Atom (English)` },
         { url: "/api/atom/fa", title: "عملیات خشم حماسی — Atom (فارسی)" },
       ],
     },

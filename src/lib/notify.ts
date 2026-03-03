@@ -1,11 +1,9 @@
 import webpush from "web-push";
 import crypto from "crypto";
 import type { TimelineEvent } from "@/data/timeline";
-import { getAllSubscriptions } from "@/lib/push";
+import { getAllSubscriptions, PUSH_KEY } from "@/lib/push";
 import { getRedis } from "@/lib/redis";
 import { SITE_URL } from "@/lib/utils";
-
-const PUSH_KEY = "push:subscriptions";
 
 let vapidInitialized = false;
 

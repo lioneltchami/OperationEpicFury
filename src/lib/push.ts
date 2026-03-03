@@ -1,7 +1,7 @@
 import { getRedis } from "@/lib/redis";
 import crypto from "crypto";
 
-const PUSH_KEY = "push:subscriptions";
+export const PUSH_KEY = "push:subscriptions";
 
 export interface PushSubscriptionRecord {
   subscription: {

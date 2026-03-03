@@ -8,7 +8,7 @@ import { LocalTime } from "@/components/ui/LocalTime";
 import { MediaGallery } from "@/components/ui/MediaGallery";
 import { ShareButtons } from "@/components/ui/ShareButtons";
 import { SourcePerspectives } from "@/components/ui/SourcePerspectives";
-import { SITE_URL } from "@/lib/utils";
+import { SITE_URL, SITE_NAME, SITE_NAME_FA } from "@/lib/utils";
 
 const EventMap = dynamic(() => import("@/components/ui/EventMap"), { ssr: false });
 
@@ -115,7 +115,7 @@ export default async function EventPage({ params }: Props) {
     author: { "@type": "Organization", name: event.source },
     publisher: {
       "@type": "Organization",
-      name: "Operation Epic Fury",
+      name: SITE_NAME,
       url: SITE_URL,
     },
     mainEntityOfPage: `${SITE_URL}/${locale}/events/${slug}`,
@@ -143,7 +143,7 @@ export default async function EventPage({ params }: Props) {
               {(dict.common as Record<string, string>).backToTimeline}
             </a>
             <span className="text-[11px] text-zinc-500 font-mono tracking-wider uppercase">
-              {isFa ? "عملیات خشم حماسی" : "Operation Epic Fury"}
+              {isFa ? SITE_NAME_FA : SITE_NAME}
             </span>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import { getPublishedEventsPaginated } from "@/lib/kv";
 import type { TimelineEvent } from "@/data/timeline";
 
-import { SITE_URL } from "@/lib/utils";
+import { SITE_URL, SITE_NAME, SITE_NAME_FA } from "@/lib/utils";
 
 const FEED_SIZE = 50;
 
@@ -35,10 +35,10 @@ async function getFeedEvents() {
 export async function generateRss(locale: "en" | "fa"): Promise<string> {
   const events = await getFeedEvents();
   const isFa = locale === "fa";
-  const title = isFa ? "عملیات خشم حماسی" : "Operation Epic Fury";
+  const title = isFa ? SITE_NAME_FA : SITE_NAME;
   const description = isFa
     ? "تایملاین لحظه‌به‌لحظه عملیات خشم حماسی"
-    : "A minute-by-minute timeline of Operation Epic Fury";
+    : `A minute-by-minute timeline of ${SITE_NAME}`;
 
   const items = events.map((e) => {
     const headline = isFa && e.headline_fa ? e.headline_fa : e.headline;
@@ -71,10 +71,10 @@ ${items.join("\n")}
 export async function generateAtom(locale: "en" | "fa"): Promise<string> {
   const events = await getFeedEvents();
   const isFa = locale === "fa";
-  const title = isFa ? "عملیات خشم حماسی" : "Operation Epic Fury";
+  const title = isFa ? SITE_NAME_FA : SITE_NAME;
   const subtitle = isFa
     ? "تایملاین لحظه‌به‌لحظه عملیات خشم حماسی"
-    : "A minute-by-minute timeline of Operation Epic Fury";
+    : `A minute-by-minute timeline of ${SITE_NAME}`;
   const altLocale = isFa ? "en" : "fa";
   const updated = events.length > 0 ? eventToIso(events[0]) : new Date().toISOString();
 

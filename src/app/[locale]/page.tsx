@@ -3,7 +3,7 @@ import { Ticker } from "@/components/sections/Ticker";
 import { StatsBar } from "@/components/sections/StatsBar";
 import { Timeline } from "@/components/sections/Timeline";
 import { Footer } from "@/components/sections/Footer";
-import { SITE_URL } from "@/lib/utils";
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/utils";
 import { getPublishedEventsPaginated } from "@/lib/kv";
 import { getStats } from "@/lib/stats";
 import { getDictionary } from "@/i18n";
@@ -68,10 +68,9 @@ export default async function Home({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Operation Epic Fury",
+    name: SITE_NAME,
     url: SITE_URL,
-    description:
-      "A minute-by-minute timeline of Operation Epic Fury — the US-Israel strikes on Iran.",
+    description: SITE_DESCRIPTION,
     inLanguage: locale === "fa" ? "fa" : "en",
   };
 
