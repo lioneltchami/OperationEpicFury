@@ -44,6 +44,16 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
   const hasMore = !filter && !regionFilter && allEvents.length < totalEvents;
   const sentinelRef = useRef<HTMLDivElement>(null);
 
+  // Cache initial events for offline reading via the SW's data cache
+  useEffect(() => {
+    if (!("caches" in window) || !initialEvents.length) return;
+    caches.open("data-v1").then((cache) => {
+      const url = "/api/events/published?offset=0&limit=" + initialEvents.length;
+      const body = JSON.stringify({ events: [...initialEvents].reverse(), total: totalEvents });
+      cache.put(url, new Response(body, { headers: { "Content-Type": "application/json" } }));
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const displayed = allEvents.filter((e) => {
     if (filter && e.category !== filter) return false;
     if (regionFilter && e.sourceRegion !== regionFilter) return false;

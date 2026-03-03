@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { MotionProvider } from "@/components/providers/MotionProvider";
+import { ServiceWorkerRegistration } from "@/components/ui/ServiceWorkerRegistration";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -91,6 +92,7 @@ export default async function RootLayout({
         <MotionProvider>
           {children}
         </MotionProvider>
+        <ServiceWorkerRegistration />
         <Analytics />
         <SpeedInsights />
       </body>
