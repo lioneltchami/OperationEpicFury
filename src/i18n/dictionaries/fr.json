@@ -52,7 +52,10 @@
   "footer": {
     "sources": "Sources",
     "tagline": "epicfuryops.info — Chronologie Opération Epic Fury",
-    "disclaimer": "Toutes les informations proviennent de grands médias. Ceci est un projet de documentation."
+    "disclaimer": "Toutes les informations proviennent de grands médias. Ceci est un projet de documentation.",
+    "exportJson": "Exporter JSON",
+    "exportCsv": "Exporter CSV",
+    "embedCode": "Code d'integration"
   },
   "categories": {
     "strike": "FRAPPE",
@@ -70,7 +73,9 @@
     "backToTimeline": "Retour à la chronologie",
     "previous": "Précédent",
     "next": "Suivant",
-    "readMore": "Lire la suite"
+    "readMore": "Lire la suite",
+    "search": "Rechercher...",
+    "searchLabel": "Rechercher"
   },
   "notifications": {
     "title": "Restez informé",
@@ -91,5 +96,52 @@
     "permissionDenied": "Les notifications sont bloquées. Veuillez les activer dans les paramètres de votre navigateur.",
     "subscribed": "Vous êtes abonné !",
     "subscribedDesc": "Vous recevrez des notifications pour les catégories sélectionnées."
+  },
+  "errors": {
+    "notFound": "Page introuvable",
+    "notFoundDesc": "La page que vous recherchez n'existe pas ou a ete deplacee.",
+    "somethingWrong": "Une erreur est survenue",
+    "somethingWrongDesc": "Une erreur inattendue s'est produite. Veuillez reessayer.",
+    "unavailable": "Temporairement indisponible",
+    "unavailableDesc": "La chronologie est temporairement indisponible. Veuillez reessayer dans quelques instants.",
+    "tryAgain": "Reessayer",
+    "retry": "Reessayer",
+    "backToTimeline": "Retour a la chronologie",
+    "loading": "Chargement..."
+  },
+  "archive": {
+    "title": "Archives des evenements",
+    "heading": "Archives",
+    "eventSingular": "evenement",
+    "eventPlural": "evenements"
+  },
+  "map": {
+    "title": "Carte des evenements",
+    "noEvents": "Aucun evenement avec des donnees de localisation pour l'instant."
+  },
+  "confidence": {
+    "confirmed": "Confirme",
+    "unconfirmed": "Non confirme",
+    "disputed": "Conteste"
+  },
+  "bias": {
+    "left": "Sources de gauche",
+    "center": "Centre / Agences de presse",
+    "right": "Sources de droite",
+    "other": "Autres sources",
+    "allPerspectives": "Toutes les perspectives"
+  },
+  "share": {
+    "share": "Partager",
+    "shareOnX": "Partager sur X",
+    "shareOnTelegram": "Partager sur Telegram",
+    "shareOnWhatsApp": "Partager sur WhatsApp",
+    "copyLink": "Copier le lien"
+  },
+  "accessibility": {
+    "skipToTimeline": "Aller a la chronologie",
+    "rssFeed": "Flux RSS",
+    "archive": "Archives",
+    "github": "GitHub"
   }
 }

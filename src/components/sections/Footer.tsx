@@ -50,7 +50,6 @@ const sources = [
 
 export const Footer = () => {
   const { dict, locale } = useLocale();
-  const isFr = locale === "fr";
   const monoClass = "font-mono";
 
   return (
@@ -88,7 +87,7 @@ export const Footer = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-zinc-500 hover:text-orange-400 transition-colors"
-                aria-label="RSS Feed"
+                aria-label={dict.accessibility.rssFeed}
               >
                 <svg
                   className="w-5 h-5"
@@ -101,7 +100,7 @@ export const Footer = () => {
               <a
                 href={`/${locale}/archive`}
                 className="text-zinc-500 hover:text-white transition-colors"
-                aria-label="Archive"
+                aria-label={dict.accessibility.archive}
               >
                 <svg
                   className="w-5 h-5"
@@ -122,7 +121,7 @@ export const Footer = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-zinc-500 hover:text-white transition-colors"
-                aria-label="GitHub"
+                aria-label={dict.accessibility.github}
               >
                 <svg
                   className="w-5 h-5"
@@ -145,13 +144,13 @@ export const Footer = () => {
               href="/api/export?format=json"
               className={`text-zinc-500 hover:text-white transition-colors ${monoClass}`}
             >
-              {isFr ? "Exporter JSON" : "Export JSON"}
+              {dict.footer.exportJson}
             </a>
             <a
               href="/api/export?format=csv"
               className={`text-zinc-500 hover:text-white transition-colors ${monoClass}`}
             >
-              {isFr ? "Exporter CSV" : "Export CSV"}
+              {dict.footer.exportCsv}
             </a>
             <button
               onClick={() => {
@@ -160,7 +159,7 @@ export const Footer = () => {
               }}
               className={`text-zinc-500 hover:text-white transition-colors ${monoClass}`}
             >
-              {isFr ? "Code d'integration ⎘" : "Embed code ⎘"}
+              {`${dict.footer.embedCode} \u2398`}
             </button>
           </div>
           {/* eslint-enable @next/next/no-html-link-for-pages */}

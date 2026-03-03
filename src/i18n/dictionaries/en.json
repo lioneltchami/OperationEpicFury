@@ -52,7 +52,10 @@
   "footer": {
     "sources": "Sources",
     "tagline": "epicfuryops.info — Operation Epic Fury Timeline",
-    "disclaimer": "All information sourced from major news outlets. This is a documentation project."
+    "disclaimer": "All information sourced from major news outlets. This is a documentation project.",
+    "exportJson": "Export JSON",
+    "exportCsv": "Export CSV",
+    "embedCode": "Embed code"
   },
   "categories": {
     "strike": "STRIKE",
@@ -70,7 +73,9 @@
     "backToTimeline": "Back to timeline",
     "previous": "Previous",
     "next": "Next",
-    "readMore": "Read more"
+    "readMore": "Read more",
+    "search": "Search events...",
+    "searchLabel": "Search"
   },
   "notifications": {
     "title": "Stay Updated",
@@ -91,5 +96,52 @@
     "permissionDenied": "Notifications are blocked. Please enable them in your browser settings.",
     "subscribed": "You're subscribed!",
     "subscribedDesc": "You'll receive notifications for your selected categories."
+  },
+  "errors": {
+    "notFound": "Page Not Found",
+    "notFoundDesc": "The page you're looking for doesn't exist or has been moved.",
+    "somethingWrong": "Something Went Wrong",
+    "somethingWrongDesc": "An unexpected error occurred. Please try again.",
+    "unavailable": "Temporarily Unavailable",
+    "unavailableDesc": "The timeline is temporarily unavailable. Please try again in a few moments.",
+    "tryAgain": "Try Again",
+    "retry": "Retry",
+    "backToTimeline": "Back to Timeline",
+    "loading": "Loading..."
+  },
+  "archive": {
+    "title": "Event Archive",
+    "heading": "Archive",
+    "eventSingular": "event",
+    "eventPlural": "events"
+  },
+  "map": {
+    "title": "Event Map",
+    "noEvents": "No events with location data yet."
+  },
+  "confidence": {
+    "confirmed": "Confirmed",
+    "unconfirmed": "Unconfirmed",
+    "disputed": "Disputed"
+  },
+  "bias": {
+    "left": "Left-leaning sources",
+    "center": "Center / Wire services",
+    "right": "Right-leaning sources",
+    "other": "Other sources",
+    "allPerspectives": "All perspectives"
+  },
+  "share": {
+    "share": "Share",
+    "shareOnX": "Share on X",
+    "shareOnTelegram": "Share on Telegram",
+    "shareOnWhatsApp": "Share on WhatsApp",
+    "copyLink": "Copy link"
+  },
+  "accessibility": {
+    "skipToTimeline": "Skip to timeline",
+    "rssFeed": "RSS Feed",
+    "archive": "Archive",
+    "github": "GitHub"
   }
 }

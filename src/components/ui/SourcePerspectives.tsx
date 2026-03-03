@@ -1,14 +1,30 @@
 "use client";
 
 import React, { useState } from "react";
-import type { EventSource } from "@/data/timeline";
 import { findSource } from "@/data/sources";
+import type { EventSource } from "@/data/timeline";
+import { useLocale } from "@/i18n/LocaleContext";
 
-const biasGroups: { key: string; label: string; biases: string[]; dot: string }[] = [
-  { key: "left", label: "Left-leaning sources", biases: ["left", "lean-left"], dot: "bg-blue-400" },
-  { key: "center", label: "Center / Wire services", biases: ["center"], dot: "bg-zinc-400" },
-  { key: "right", label: "Right-leaning sources", biases: ["right", "lean-right"], dot: "bg-red-400" },
-  { key: "unknown", label: "Other sources", biases: [], dot: "bg-yellow-400" },
+const biasGroups: {
+  key: string;
+  dictKey: "left" | "center" | "right" | "other";
+  biases: string[];
+  dot: string;
+}[] = [
+  {
+    key: "left",
+    dictKey: "left",
+    biases: ["left", "lean-left"],
+    dot: "bg-blue-400",
+  },
+  { key: "center", dictKey: "center", biases: ["center"], dot: "bg-zinc-400" },
+  {
+    key: "right",
+    dictKey: "right",
+    biases: ["right", "lean-right"],
+    dot: "bg-red-400",
+  },
+  { key: "unknown", dictKey: "other", biases: [], dot: "bg-yellow-400" },
 ];
 
 function classifySource(src: EventSource) {
@@ -18,6 +34,7 @@ function classifySource(src: EventSource) {
 }
 
 export function SourcePerspectives({ sources }: { sources: EventSource[] }) {
+  const { dict } = useLocale();
   const [open, setOpen] = useState(false);
 
   if (sources.length < 2) return null;
@@ -26,7 +43,8 @@ export function SourcePerspectives({ sources }: { sources: EventSource[] }) {
   const grouped = new Map<string, EventSource[]>();
   for (const src of sources) {
     const bias = classifySource(src);
-    const groupKey = biasGroups.find((g) => bias && g.biases.includes(bias))?.key ?? "unknown";
+    const groupKey =
+      biasGroups.find((g) => bias && g.biases.includes(bias))?.key ?? "unknown";
     const arr = grouped.get(groupKey) ?? [];
     arr.push(src);
     grouped.set(groupKey, arr);
@@ -49,9 +67,13 @@ export function SourcePerspectives({ sources }: { sources: EventSource[] }) {
           stroke="currentColor"
           strokeWidth={2}
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M8.25 4.5l7.5 7.5-7.5 7.5"
+          />
         </svg>
-        All perspectives ({sources.length} sources)
+        {dict.bias.allPerspectives} ({sources.length})
       </button>
 
       {open && (
@@ -64,7 +86,7 @@ export function SourcePerspectives({ sources }: { sources: EventSource[] }) {
                 <div className="flex items-center gap-2 mb-2">
                   <span className={`w-2 h-2 rounded-full ${group.dot}`} />
                   <span className="text-xs text-zinc-500 font-bold uppercase tracking-wider">
-                    {group.label}
+                    {dict.bias[group.dictKey]}
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 pl-4">
@@ -78,7 +100,9 @@ export function SourcePerspectives({ sources }: { sources: EventSource[] }) {
                     >
                       {src.name}
                       {src.region && (
-                        <span className="text-zinc-600 ml-1">({src.region})</span>
+                        <span className="text-zinc-600 ml-1">
+                          ({src.region})
+                        </span>
                       )}
                     </a>
                   ))}

@@ -2,12 +2,12 @@
 
 import React, { useState } from "react";
 import type { TimelineEvent } from "@/data/timeline";
+import { useLocale } from "@/i18n/LocaleContext";
 
 interface ArchiveListProps {
   sortedDates: string[];
   grouped: Record<string, TimelineEvent[]>;
   locale: string;
-  isFr: boolean;
   catLabels: Record<string, string>;
 }
 
@@ -15,9 +15,10 @@ export function ArchiveList({
   sortedDates,
   grouped,
   locale,
-  isFr,
   catLabels,
 }: ArchiveListProps) {
+  const { dict } = useLocale();
+  const isFr = locale === "fr";
   const [expanded, setExpanded] = useState<Set<string>>(
     new Set([sortedDates[0]]),
   );
@@ -71,13 +72,9 @@ export function ArchiveList({
               </div>
               <span className="text-xs text-zinc-500 font-mono">
                 {events.length}{" "}
-                {isFr
-                  ? events.length === 1
-                    ? "evenement"
-                    : "evenements"
-                  : events.length === 1
-                    ? "event"
-                    : "events"}
+                {events.length === 1
+                  ? dict.archive.eventSingular
+                  : dict.archive.eventPlural}
               </span>
             </button>
 

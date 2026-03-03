@@ -4,16 +4,20 @@ import { getDictionary } from "@/i18n";
 import type { Locale } from "@/i18n/config";
 import { getPublishedEvents } from "@/lib/kv";
 
-export const metadata: Metadata = {
-  title: "Event Map | Operation Epic Fury",
-  description: "Geographic view of all Operation Epic Fury events.",
-};
-
-export const revalidate = 60;
-
 type Props = {
   params: Promise<{ locale: string }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const dict = await getDictionary(locale as Locale);
+  return {
+    title: `${dict.map.title} | Operation Epic Fury`,
+    description: "Geographic view of all Operation Epic Fury events.",
+  };
+}
+
+export const revalidate = 60;
 
 export default async function MapPage({ params }: Props) {
   const { locale } = await params;
@@ -23,8 +27,6 @@ export default async function MapPage({ params }: Props) {
   ]);
 
   const eventsWithLocation = events.filter((e) => e.location);
-
-  const isFr = locale === "fr";
 
   return (
     <main className="min-h-screen bg-black flex flex-col">
@@ -51,8 +53,7 @@ export default async function MapPage({ params }: Props) {
             {(dict.common as Record<string, string>).backToTimeline}
           </a>
           <span className="text-[11px] text-zinc-500 font-mono tracking-wider uppercase">
-            {isFr ? "Carte des evenements" : "Event Map"} (
-            {eventsWithLocation.length})
+            {dict.map.title} ({eventsWithLocation.length})
           </span>
         </div>
       </div>
@@ -66,11 +67,7 @@ export default async function MapPage({ params }: Props) {
           <AggregateMap events={events} locale={locale} />
         ) : (
           <div className="flex items-center justify-center h-full">
-            <p className="text-zinc-500 text-sm">
-              {isFr
-                ? "Aucun evenement avec des donnees de localisation pour l'instant."
-                : "No events with location data yet."}
-            </p>
+            <p className="text-zinc-500 text-sm">{dict.map.noEvents}</p>
           </div>
         )}
       </div>

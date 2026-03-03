@@ -4,14 +4,18 @@ import { getDictionary } from "@/i18n";
 import type { Locale } from "@/i18n/config";
 import { getPublishedEvents } from "@/lib/kv";
 
-export const metadata: Metadata = {
-  title: "Archive | Operation Epic Fury",
-  description: "Browse all Operation Epic Fury events by date.",
-};
+type Props = { params: Promise<{ locale: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const dict = await getDictionary(locale as Locale);
+  return {
+    title: `${dict.archive.title} | Operation Epic Fury`,
+    description: `Browse all Operation Epic Fury events by date.`,
+  };
+}
 
 export const revalidate = 60;
-
-type Props = { params: Promise<{ locale: string }> };
 
 export default async function ArchivePage({ params }: Props) {
   const { locale } = await params;
@@ -19,8 +23,6 @@ export default async function ArchivePage({ params }: Props) {
     getPublishedEvents(),
     getDictionary(locale as Locale),
   ]);
-
-  const isFr = locale === "fr";
 
   // Group events by date (YYYY-MM-DD)
   const grouped: Record<string, typeof events> = {};
@@ -55,20 +57,19 @@ export default async function ArchivePage({ params }: Props) {
             {(dict.common as Record<string, string>).backToTimeline}
           </a>
           <span className="text-[11px] text-zinc-500 font-mono tracking-wider uppercase">
-            {isFr ? "Archives" : "Archive"} ({events.length})
+            {dict.archive.heading} ({events.length})
           </span>
         </div>
       </div>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
         <h1 className="text-2xl font-bold text-white mb-8">
-          {isFr ? "Archives des evenements" : "Event Archive"}
+          {dict.archive.title}
         </h1>
         <ArchiveList
           sortedDates={sortedDates}
           grouped={grouped}
           locale={locale}
-          isFr={isFr}
           catLabels={dict.categories as Record<string, string>}
         />
       </div>

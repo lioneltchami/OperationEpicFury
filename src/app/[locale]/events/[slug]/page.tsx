@@ -192,8 +192,8 @@ export default async function EventPage({ params }: Props) {
                 }`}
               >
                 {confidenceLabel === "disputed"
-                  ? "⚠ Disputed"
-                  : "? Unconfirmed"}
+                  ? `⚠ ${dict.confidence.disputed}`
+                  : `? ${dict.confidence.unconfirmed}`}
               </span>
             )}
           </div>

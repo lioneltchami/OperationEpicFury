@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
   );
   const category = params.get("category") ?? "";
   const theme = params.get("theme") === "light" ? "light" : "dark";
+  const locale = params.get("locale") === "fr" ? "fr" : "en";
 
   const { events: allEvents } = await getPublishedEventsPaginated(0, 200);
   const reversed = [...allEvents].reverse();
@@ -32,7 +33,7 @@ export async function GET(req: NextRequest) {
         <span style="color:${accent};font-family:monospace;font-size:12px;font-weight:700">${escapeHtml(e.timeET.split(" ")[1] ?? "")}</span>
         <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:${muted}">${escapeHtml(e.category)}</span>
       </div>
-      <a href="${SITE_URL}/en/events/${e.slug ?? ""}" target="_blank" rel="noopener" style="color:${text};text-decoration:none;font-size:14px;font-weight:600;line-height:1.4">${escapeHtml(e.headline)}</a>
+      <a href="${SITE_URL}/${locale}/events/${e.slug ?? ""}" target="_blank" rel="noopener" style="color:${text};text-decoration:none;font-size:14px;font-weight:600;line-height:1.4">${escapeHtml(e.headline)}</a>
       <div style="margin-top:4px;font-size:11px;color:${muted}">${escapeHtml(e.source)}</div>
     </div>`,
     )
@@ -57,7 +58,7 @@ a:hover{text-decoration:underline!important}
   </div>
   ${eventsHtml}
   <div style="padding:10px 16px;text-align:center">
-    <a href="${SITE_URL}" target="_blank" rel="noopener" style="color:${muted};font-size:11px;text-decoration:none">View full timeline →</a>
+    <a href="${SITE_URL}" target="_blank" rel="noopener" style="color:${muted};font-size:11px;text-decoration:none">${locale === "fr" ? "Voir la chronologie compl\u00e8te" : "View full timeline"} →</a>
   </div>
 </div>
 </body>

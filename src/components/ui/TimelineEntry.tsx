@@ -12,21 +12,18 @@ import { cn, SITE_URL } from "@/lib/utils";
 
 const confidenceConfig: Record<
   ConfidenceLevel,
-  { icon: string; label: string; className: string }
+  { icon: string; className: string }
 > = {
   confirmed: {
-    icon: "✓",
-    label: "Confirmed",
+    icon: "\u2713",
     className: "text-green-400 bg-green-500/15 border-green-500/30",
   },
   unconfirmed: {
     icon: "?",
-    label: "Unconfirmed",
     className: "text-yellow-400 bg-yellow-500/15 border-yellow-500/30",
   },
   disputed: {
-    icon: "⚠",
-    label: "Disputed",
+    icon: "\u26A0",
     className: "text-orange-400 bg-orange-500/15 border-orange-500/30",
   },
 };
@@ -121,9 +118,9 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
               "px-2 py-0.5 text-[11px] font-bold tracking-widest border rounded",
               conf.className,
             )}
-            title={conf.label}
+            title={dict.confidence[event.confidence ?? "confirmed"]}
           >
-            {conf.icon} {conf.label}
+            {conf.icon} {dict.confidence[event.confidence ?? "confirmed"]}
           </span>
         )}
       </div>
@@ -227,7 +224,7 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-zinc-600 hover:text-white transition-colors"
-                  aria-label="Share on X"
+                  aria-label={dict.share.shareOnX}
                 >
                   <svg
                     className="w-3.5 h-3.5"
@@ -242,7 +239,7 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-zinc-600 hover:text-white transition-colors"
-                  aria-label="Share on Telegram"
+                  aria-label={dict.share.shareOnTelegram}
                 >
                   <svg
                     className="w-3.5 h-3.5"
@@ -257,7 +254,7 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-zinc-600 hover:text-white transition-colors"
-                  aria-label="Share on WhatsApp"
+                  aria-label={dict.share.shareOnWhatsApp}
                 >
                   <svg
                     className="w-3.5 h-3.5"
@@ -276,7 +273,7 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
                     setTimeout(() => setCopied(false), 2000);
                   }}
                   className="text-zinc-600 hover:text-white transition-colors"
-                  aria-label="Copy link"
+                  aria-label={dict.share.copyLink}
                 >
                   {copied ? (
                     <svg
@@ -313,7 +310,7 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
             <button
               onClick={() => setShowShare(!showShare)}
               className="text-zinc-600 hover:text-white transition-colors"
-              aria-label="Share"
+              aria-label={dict.share.share}
             >
               <svg
                 className="w-3.5 h-3.5"
