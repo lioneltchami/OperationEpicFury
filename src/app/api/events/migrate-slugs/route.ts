@@ -34,8 +34,9 @@ export async function POST(req: NextRequest) {
       skipped: events.length - updated,
     });
   } catch (err) {
+    console.error("Slug migration failed:", err);
     return NextResponse.json(
-      { error: String(err) },
+      { error: "Slug migration failed" },
       { status: 500 },
     );
   }

@@ -11,8 +11,9 @@ export async function POST(req: NextRequest) {
     const result = await migrateToNewStructure();
     return NextResponse.json(result);
   } catch (err) {
+    console.error("Migration failed:", err);
     return NextResponse.json(
-      { error: String(err) },
+      { error: "Migration failed" },
       { status: 500 },
     );
   }

@@ -4,6 +4,51 @@ import { bufferMediaItem } from "@/lib/kv";
 import { dispatchGitHubAction } from "@/lib/github";
 import type { MediaItem } from "@/data/timeline";
 
+interface TelegramPhotoSize {
+  file_id: string;
+  width: number;
+  height: number;
+}
+
+interface TelegramVideo {
+  file_id: string;
+  width?: number;
+  height?: number;
+  duration?: number;
+  mime_type?: string;
+  thumbnail?: { file_id: string };
+}
+
+interface TelegramMessage {
+  message_id: number;
+  chat: { id: number; username?: string };
+  from?: { id: number };
+  date: number;
+  text?: string;
+  caption?: string;
+  photo?: TelegramPhotoSize[];
+  video?: TelegramVideo;
+  animation?: TelegramVideo;
+  media_group_id?: string;
+  reply_to_message?: TelegramMessage;
+  forward_origin?: {
+    type: string;
+    date?: number;
+    chat?: { username?: string };
+    message_id?: number;
+  };
+  forward_date?: number;
+  entities?: TelegramEntity[];
+  caption_entities?: TelegramEntity[];
+}
+
+interface TelegramEntity {
+  type: string;
+  offset: number;
+  length: number;
+  url?: string;
+}
+
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -24,8 +69,7 @@ function unixToET(unix: number): string {
   return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}`;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function extractMedia(message: any): MediaItem | null {
+function extractMedia(message: TelegramMessage): MediaItem | null {
   if (message.photo && Array.isArray(message.photo) && message.photo.length > 0) {
     const largest = message.photo[message.photo.length - 1];
     return {
@@ -120,7 +164,7 @@ export async function POST(req: NextRequest) {
 
   // 2. Parse update
   const update = await req.json();
-  const message = update.message ?? update.channel_post;
+  const message: TelegramMessage | undefined = update.message ?? update.channel_post;
   if (!message) {
     return NextResponse.json({ ok: true });
   }
@@ -235,7 +279,7 @@ export async function POST(req: NextRequest) {
 
   // 3e. If message has URLs but no command and is not forwarded, reject
   const hasUrls = (message.entities ?? message.caption_entities ?? []).some(
-    (e: { type: string }) => e.type === "url" || e.type === "text_link",
+    (e: TelegramEntity) => e.type === "url" || e.type === "text_link",
   );
   if (hasUrls && !message.forward_origin) {
     await sendMessage(
@@ -254,7 +298,7 @@ export async function POST(req: NextRequest) {
   for (const entity of entities) {
     if (entity.type === "url") {
       urls.push(text.slice(entity.offset, entity.offset + entity.length));
-    } else if (entity.type === "text_link") {
+    } else if (entity.type === "text_link" && entity.url) {
       urls.push(entity.url);
     }
   }
