@@ -71,7 +71,7 @@ export default async function Home({
     name: SITE_NAME,
     url: SITE_URL,
     description: SITE_DESCRIPTION,
-    inLanguage: locale === "fa" ? "fa" : "en",
+    inLanguage: locale,
   };
 
   return (

@@ -89,11 +89,11 @@ jobs:
               [{"fileId": "", "type": "photo", "url": "<image-url>"}]
               ```
 
-            ## Step 5: Translate to Farsi
+            ## Step 5: Translate to French
 
-            Translate headline and body to natural, fluent Persian in formal news style.
-            Use common Persian forms for proper nouns.
-            CRITICAL: Write Farsi as raw UTF-8 characters, NEVER as \u escape sequences.
+            Translate headline and body to natural, fluent French in formal news style.
+            Use standard French forms for proper nouns.
+            CRITICAL: Write French characters, NEVER as \u escape sequences.
 
             ## Step 6: Create draft event
 
@@ -112,8 +112,8 @@ jobs:
                 "confidence": "unconfirmed",
                 "sources": [{"name": "<source>", "url": "<source url>", "region": "<region>"}],
                 "breaking": <true|false>,
-                "headline_fa": "<Farsi headline>",
-                "body_fa": "<Farsi body>",
+                "headline_fr": "<French headline>",
+                "body_fr": "<French body>",
                 "media": <media array or omit>,
                 "status": "draft"
               }'
@@ -142,6 +142,6 @@ jobs:
             CRITICAL RULES:
             - Do NOT search the web. Only fetch the provided URL.
             - Use the ARTICLE'S publication date as timeET, NOT the current time.
-            - All Farsi text must be raw UTF-8, NEVER \u escape sequences.
+            - All French text must be raw UTF-8, NEVER \u escape sequences.
             - All JSON must be valid. Escape double quotes inside strings.
             - STRICT DATE: Timeline covers events from February 28, 2026 onward.

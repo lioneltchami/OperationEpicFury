@@ -85,13 +85,13 @@ jobs:
             - **sources**: Array with one entry: [{"name": "<source>", "url": "<sourceUrl>", "region": "<sourceRegion>"}]
             - **breaking**: true only for major developments
 
-            ## Step 5: Translate to Farsi
+            ## Step 5: Translate to French
 
-            Translate headline and body to Persian/Farsi:
-            - Write natural, fluent Persian in formal news style
-            - Use common Persian forms for proper nouns (ایران, آمریکا, اسرائیل)
+            Translate headline and body to French:
+            - Write natural, fluent French in formal news style
+            - Use standard French forms for proper nouns (ایران, آمریکا, اسرائیل)
 
-            CRITICAL: Write Farsi as raw UTF-8 characters, NEVER as \u escape sequences.
+            CRITICAL: Write French characters, NEVER as \u escape sequences.
 
             ## Step 6: Create draft event
 
@@ -112,8 +112,8 @@ jobs:
                 "confidence": "unconfirmed",
                 "sources": [{"name": "<source name>", "url": "<source url>", "region": "<us|eu|middle-east|asia|other>"}],
                 "breaking": <true|false>,
-                "headline_fa": "<Farsi headline>",
-                "body_fa": "<Farsi body>",
+                "headline_fr": "<French headline>",
+                "body_fr": "<French body>",
                 "media": <Media JSON array or omit if empty>,
                 "media_group_id": "<media_group_id or omit if empty>",
                 "status": "draft"
@@ -143,7 +143,7 @@ jobs:
             CRITICAL RULES:
             - Do NOT use web search. Do NOT use any source beyond the input provided.
             - Use the pre-computed "Timestamp (ET)" from the Input directly as timeET. NEVER leave timeET empty.
-            - All Farsi text must be raw UTF-8 characters, NEVER \u escape sequences.
+            - All French text must be raw UTF-8 characters, NEVER \u escape sequences.
             - All JSON must be valid. Escape double quotes inside strings.
             - STRICT DATE: This timeline covers events from February 28, 2026 onward. Reject anything before that date.
             - If Media JSON is provided, pass it through to the publish API as-is.

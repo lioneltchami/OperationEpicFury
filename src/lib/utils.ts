@@ -7,6 +7,6 @@ export function cn(...inputs: ClassValue[]) {
 
 export const SITE_URL = process.env.SITE_URL ?? "https://epicfuryops.info";
 export const SITE_NAME = "Operation Epic Fury";
-export const SITE_NAME_FA = "عملیات خشم حماسی";
+export const SITE_NAME_FR = "Opération Epic Fury";
 export const SITE_DESCRIPTION =
   "A minute-by-minute timeline of Operation Epic Fury — the US-Israel strikes on Iran.";

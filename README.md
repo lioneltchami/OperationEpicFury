@@ -1,6 +1,6 @@
 # Operation Epic Fury
 
-A real-time news timeline tracking Operation Epic Fury (US-Israel strikes on Iran, starting Feb 28, 2026). The site aggregates news from multiple sources every 3 hours via Claude AI, cross-checks across sources, translates to Farsi, and publishes them after human review.
+A real-time news timeline tracking Operation Epic Fury (US-Israel strikes on Iran, starting Feb 28, 2026). The site aggregates news from multiple sources every 3 hours via Claude AI, cross-checks across sources, translates to French, and publishes them after human review.
 
 **Live:** [epicfuryops.info](https://epicfuryops.info)
 
@@ -27,11 +27,11 @@ Tweet URLs ──→ GitHub Actions ───────────→ Human c
 2. **Processing** — GitHub Actions dispatches to Claude AI, which summarizes, cross-checks sources, and extracts structured event data
 3. **Review** — Claude creates a GitHub Issue with the draft event. A human reviews and closes the issue to approve
 4. **Publishing** — `news-approve.yml` fires on issue close, calling `POST /api/events/publish` to push the event live
-5. **Translation** — A separate action translates English events to Farsi via Claude
+5. **Translation** — A separate action translates English events to French via Claude
 
 ### Key Features
 
-- Bilingual (English/Farsi) with full RTL support
+- Bilingual (English/French) with full i18n support
 - Source credibility tracking (confidence levels, multi-source, source regions)
 - Push notifications via Web Push API
 - Admin panel with draft/publish workflow

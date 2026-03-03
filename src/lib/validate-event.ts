@@ -85,11 +85,11 @@ export function validateEventInput(
   if (typeof b.breaking === "boolean") {
     data.breaking = b.breaking;
   }
-  if (typeof b.headline_fa === "string" && b.headline_fa.length <= MAX_HEADLINE) {
-    data.headline_fa = b.headline_fa;
+  if (typeof b.headline_fr === "string" && b.headline_fr.length <= MAX_HEADLINE) {
+    data.headline_fr = b.headline_fr;
   }
-  if (typeof b.body_fa === "string" && b.body_fa.length <= MAX_BODY) {
-    data.body_fa = b.body_fa;
+  if (typeof b.body_fr === "string" && b.body_fr.length <= MAX_BODY) {
+    data.body_fr = b.body_fr;
   }
   if (b.status === "draft" || b.status === "published") {
     data.status = b.status;
@@ -182,15 +182,15 @@ export function validateEventUpdate(
     }
   }
 
-  if ("headline_fa" in b) {
-    if (typeof b.headline_fa === "string" && b.headline_fa.length <= MAX_HEADLINE) {
-      data.headline_fa = b.headline_fa;
+  if ("headline_fr" in b) {
+    if (typeof b.headline_fr === "string" && b.headline_fr.length <= MAX_HEADLINE) {
+      data.headline_fr = b.headline_fr;
     }
   }
 
-  if ("body_fa" in b) {
-    if (typeof b.body_fa === "string" && b.body_fa.length <= MAX_BODY) {
-      data.body_fa = b.body_fa;
+  if ("body_fr" in b) {
+    if (typeof b.body_fr === "string" && b.body_fr.length <= MAX_BODY) {
+      data.body_fr = b.body_fr;
     }
   }
 

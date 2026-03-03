@@ -1,7 +1,7 @@
 import { getPublishedEventsPaginated } from "@/lib/kv";
 import type { TimelineEvent } from "@/data/timeline";
 
-import { SITE_URL, SITE_NAME, SITE_NAME_FA } from "@/lib/utils";
+import { SITE_URL, SITE_NAME, SITE_NAME_FR } from "@/lib/utils";
 
 const FEED_SIZE = 50;
 
@@ -32,17 +32,17 @@ async function getFeedEvents() {
   return events;
 }
 
-export async function generateRss(locale: "en" | "fa"): Promise<string> {
+export async function generateRss(locale: "en" | "fr"): Promise<string> {
   const events = await getFeedEvents();
-  const isFa = locale === "fa";
-  const title = isFa ? SITE_NAME_FA : SITE_NAME;
-  const description = isFa
-    ? "تایملاین لحظه‌به‌لحظه عملیات خشم حماسی"
+  const isFr = locale === "fr";
+  const title = isFr ? SITE_NAME_FR : SITE_NAME;
+  const description = isFr
+    ? `Chronologie minute par minute — ${SITE_NAME_FR}`
     : `A minute-by-minute timeline of ${SITE_NAME}`;
 
   const items = events.map((e) => {
-    const headline = isFa && e.headline_fa ? e.headline_fa : e.headline;
-    const body = isFa && e.body_fa ? e.body_fa : e.body;
+    const headline = isFr && e.headline_fr ? e.headline_fr : e.headline;
+    const body = isFr && e.body_fr ? e.body_fr : e.body;
     const link = `${SITE_URL}/${locale}/events/${e.slug ?? e.id}`;
     return `    <item>
       <title>${escapeXml(headline)}</title>
@@ -62,25 +62,25 @@ export async function generateRss(locale: "en" | "fa"): Promise<string> {
     <link>${SITE_URL}/${locale}</link>
     <description>${escapeXml(description)}</description>
     <language>${locale}</language>
-    <atom:link href="${SITE_URL}/api/rss${isFa ? "/fa" : ""}" rel="self" type="application/rss+xml"/>
+    <atom:link href="${SITE_URL}/api/rss${isFr ? "/fa" : ""}" rel="self" type="application/rss+xml"/>
 ${items.join("\n")}
   </channel>
 </rss>`;
 }
 
-export async function generateAtom(locale: "en" | "fa"): Promise<string> {
+export async function generateAtom(locale: "en" | "fr"): Promise<string> {
   const events = await getFeedEvents();
-  const isFa = locale === "fa";
-  const title = isFa ? SITE_NAME_FA : SITE_NAME;
-  const subtitle = isFa
-    ? "تایملاین لحظه‌به‌لحظه عملیات خشم حماسی"
+  const isFr = locale === "fr";
+  const title = isFr ? SITE_NAME_FR : SITE_NAME;
+  const subtitle = isFr
+    ? `Chronologie minute par minute — ${SITE_NAME_FR}`
     : `A minute-by-minute timeline of ${SITE_NAME}`;
-  const altLocale = isFa ? "en" : "fa";
+  const altLocale = isFr ? "en" : "fr";
   const updated = events.length > 0 ? eventToIso(events[0]) : new Date().toISOString();
 
   const entries = events.map((e) => {
-    const headline = isFa && e.headline_fa ? e.headline_fa : e.headline;
-    const body = isFa && e.body_fa ? e.body_fa : e.body;
+    const headline = isFr && e.headline_fr ? e.headline_fr : e.headline;
+    const body = isFr && e.body_fr ? e.body_fr : e.body;
     const link = `${SITE_URL}/${locale}/events/${e.slug ?? e.id}`;
     return `  <entry>
     <title>${escapeXml(headline)}</title>
@@ -97,9 +97,9 @@ export async function generateAtom(locale: "en" | "fa"): Promise<string> {
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>${escapeXml(title)}</title>
   <subtitle>${escapeXml(subtitle)}</subtitle>
-  <link href="${SITE_URL}/api/atom${isFa ? "/fa" : ""}" rel="self" type="application/atom+xml"/>
+  <link href="${SITE_URL}/api/atom${isFr ? "/fa" : ""}" rel="self" type="application/atom+xml"/>
   <link href="${SITE_URL}/${locale}" rel="alternate" type="text/html"/>
-  <link href="${SITE_URL}/api/atom/${altLocale === "fa" ? "fa" : ""}" rel="alternate" type="application/atom+xml" hreflang="${altLocale}"/>
+  <link href="${SITE_URL}/api/atom/${altLocale === "fr" ? "fr" : ""}" rel="alternate" type="application/atom+xml" hreflang="${altLocale}"/>
   <id>${SITE_URL}/${locale}</id>
   <updated>${updated}</updated>
 ${entries.join("\n")}

@@ -34,11 +34,11 @@ export async function notifySubscribers(event: TimelineEvent): Promise<void> {
     matching.map(async (record) => {
       const locale = record.locale || "en";
       const headline =
-        locale === "fa" && event.headline_fa
-          ? event.headline_fa
+        locale === "fr" && event.headline_fr
+          ? event.headline_fr
           : event.headline;
       const body =
-        locale === "fa" && event.body_fa ? event.body_fa : event.body;
+        locale === "fr" && event.body_fr ? event.body_fr : event.body;
 
       const payload = JSON.stringify({
         title: `${event.category.toUpperCase()}: ${headline}`,

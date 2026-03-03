@@ -7,11 +7,11 @@ interface ArchiveListProps {
   sortedDates: string[];
   grouped: Record<string, TimelineEvent[]>;
   locale: string;
-  isFa: boolean;
+  isFr: boolean;
   catLabels: Record<string, string>;
 }
 
-export function ArchiveList({ sortedDates, grouped, locale, isFa, catLabels }: ArchiveListProps) {
+export function ArchiveList({ sortedDates, grouped, locale, isFr, catLabels }: ArchiveListProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set([sortedDates[0]]));
 
   const toggle = (date: string) => {
@@ -29,7 +29,7 @@ export function ArchiveList({ sortedDates, grouped, locale, isFa, catLabels }: A
         const events = grouped[date];
         const isOpen = expanded.has(date);
         const formatted = new Date(date + "T12:00:00").toLocaleDateString(
-          isFa ? "fa-IR" : "en-US",
+          isFr ? "fa-IR" : "en-US",
           { weekday: "long", year: "numeric", month: "long", day: "numeric" },
         );
 
@@ -50,14 +50,14 @@ export function ArchiveList({ sortedDates, grouped, locale, isFa, catLabels }: A
                 <span className="text-sm text-white font-bold">{formatted}</span>
               </div>
               <span className="text-xs text-zinc-500 font-mono">
-                {events.length} {isFa ? "رویداد" : events.length === 1 ? "event" : "events"}
+                {events.length} {isFr ? "رویداد" : events.length === 1 ? "event" : "events"}
               </span>
             </button>
 
             {isOpen && (
               <div className="border-t border-zinc-800/40 divide-y divide-zinc-800/30">
                 {events.map((event) => {
-                  const headline = isFa && event.headline_fa ? event.headline_fa : event.headline;
+                  const headline = isFr && event.headline_fr ? event.headline_fr : event.headline;
                   const time = event.timeET.split(" ")[1] ?? "";
                   return (
                     <a

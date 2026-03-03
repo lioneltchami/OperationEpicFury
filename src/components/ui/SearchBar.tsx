@@ -6,7 +6,7 @@ import { useLocale } from "@/i18n/LocaleContext";
 
 export const SearchBar = () => {
   const { locale } = useLocale();
-  const isFa = locale === "fa";
+  const isFr = locale === "fr";
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<TimelineEvent[]>([]);
   const [open, setOpen] = useState(false);
@@ -55,7 +55,7 @@ export const SearchBar = () => {
   return (
     <div ref={containerRef} className="relative w-full max-w-xl mx-auto">
       <div className="relative">
-        <svg className={`absolute top-1/2 -translate-y-1/2 ${isFa ? "right-3" : "left-3"} w-4 h-4 text-zinc-500`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg className={`absolute top-1/2 -translate-y-1/2 ${isFr ? "right-3" : "left-3"} w-4 h-4 text-zinc-500`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
         </svg>
         <input
@@ -64,9 +64,9 @@ export const SearchBar = () => {
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={onKeyDown}
           onFocus={() => results.length > 0 && setOpen(true)}
-          placeholder={isFa ? "جستجو در رویدادها..." : "Search events..."}
-          className={`w-full bg-zinc-900/80 border border-zinc-800 rounded-lg py-2.5 ${isFa ? "pr-10 pl-4" : "pl-10 pr-4"} text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition-colors`}
-          aria-label={isFa ? "جستجو" : "Search"}
+          placeholder={isFr ? "جستجو در رویدادها..." : "Search events..."}
+          className={`w-full bg-zinc-900/80 border border-zinc-800 rounded-lg py-2.5 ${isFr ? "pr-10 pl-4" : "pl-10 pr-4"} text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition-colors`}
+          aria-label={isFr ? "جستجو" : "Search"}
           role="combobox"
           aria-expanded={open}
           aria-controls="search-results"
@@ -81,7 +81,7 @@ export const SearchBar = () => {
           className="absolute z-50 mt-1 w-full bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl overflow-hidden max-h-80 overflow-y-auto"
         >
           {results.map((event, i) => {
-            const headline = isFa && event.headline_fa ? event.headline_fa : event.headline;
+            const headline = isFr && event.headline_fr ? event.headline_fr : event.headline;
             return (
               <li key={event.id} role="option" aria-selected={i === active}>
                 <a

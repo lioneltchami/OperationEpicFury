@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Vazirmatn } from "next/font/google";
 import { headers } from "next/headers";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -18,11 +17,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const vazirmatn = Vazirmatn({
-  variable: "--font-vazirmatn",
-  subsets: ["arabic"],
-  display: "swap",
-});
 
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/utils";
 
@@ -36,15 +30,15 @@ export const metadata: Metadata = {
   robots: "index, follow",
   alternates: {
     canonical: "/en",
-    languages: { en: "/en", fa: "/fa" },
+    languages: { en: "/en", fr: "/fr" },
     types: {
       "application/rss+xml": [
         { url: "/api/rss", title: `${SITE_NAME} (English)` },
-        { url: "/api/rss/fa", title: "عملیات خشم حماسی (فارسی)" },
+        { url: "/api/rss/fr", title: "Opération Epic Fury (Français)" },
       ],
       "application/atom+xml": [
         { url: "/api/atom", title: `${SITE_NAME} — Atom (English)` },
-        { url: "/api/atom/fa", title: "عملیات خشم حماسی — Atom (فارسی)" },
+        { url: "/api/atom/fr", title: "Opération Epic Fury — Atom (Français)" },
       ],
     },
   },
@@ -71,15 +65,15 @@ export default async function RootLayout({
 }>) {
   const headersList = await headers();
   const locale = headersList.get("x-next-locale") || "en";
-  const dir = locale === "fa" ? "rtl" : "ltr";
+  
 
   return (
-    <html lang={locale} dir={dir} className="dark">
+    <html lang={locale} className="dark">
       <head>
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js-ready')" }} />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${vazirmatn.variable} antialiased bg-black text-white ${locale === "fa" ? "font-vazirmatn" : ""}`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white`}
       >
         {/* eslint-disable @next/next/no-html-link-for-pages */}
         <noscript>

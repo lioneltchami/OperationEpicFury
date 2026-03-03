@@ -25,8 +25,8 @@ export default async function MapPage({ params }: Props) {
   ]);
 
   const eventsWithLocation = events.filter((e) => e.location);
-  const isRtl = locale === "fa";
-  const isFa = locale === "fa";
+  
+  const isFr = locale === "fr";
 
   return (
     <main className="min-h-screen bg-black flex flex-col">
@@ -38,12 +38,12 @@ export default async function MapPage({ params }: Props) {
             className="flex items-center gap-2 text-xs text-zinc-500 hover:text-white transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d={isRtl ? "M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" : "M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"} />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
             </svg>
             {(dict.common as Record<string, string>).backToTimeline}
           </a>
           <span className="text-[11px] text-zinc-500 font-mono tracking-wider uppercase">
-            {isFa ? "نقشه رویدادها" : "Event Map"} ({eventsWithLocation.length})
+            {isFr ? "نقشه رویدادها" : "Event Map"} ({eventsWithLocation.length})
           </span>
         </div>
       </div>
@@ -55,7 +55,7 @@ export default async function MapPage({ params }: Props) {
         ) : (
           <div className="flex items-center justify-center h-full">
             <p className="text-zinc-500 text-sm">
-              {isFa ? "هنوز رویدادی با موقعیت مکانی ثبت نشده است." : "No events with location data yet."}
+              {isFr ? "هنوز رویدادی با موقعیت مکانی ثبت نشده است." : "No events with location data yet."}
             </p>
           </div>
         )}

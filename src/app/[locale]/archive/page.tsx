@@ -20,8 +20,8 @@ export default async function ArchivePage({ params }: Props) {
     getDictionary(locale as Locale),
   ]);
 
-  const isRtl = locale === "fa";
-  const isFa = locale === "fa";
+  
+  const isFr = locale === "fr";
 
   // Group events by date (YYYY-MM-DD)
   const grouped: Record<string, typeof events> = {};
@@ -41,25 +41,25 @@ export default async function ArchivePage({ params }: Props) {
             className="flex items-center gap-2 text-xs text-zinc-500 hover:text-white transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d={isRtl ? "M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" : "M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"} />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
             </svg>
             {(dict.common as Record<string, string>).backToTimeline}
           </a>
           <span className="text-[11px] text-zinc-500 font-mono tracking-wider uppercase">
-            {isFa ? "آرشیو" : "Archive"} ({events.length})
+            {isFr ? "آرشیو" : "Archive"} ({events.length})
           </span>
         </div>
       </div>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
         <h1 className="text-2xl font-bold text-white mb-8">
-          {isFa ? "آرشیو رویدادها" : "Event Archive"}
+          {isFr ? "آرشیو رویدادها" : "Event Archive"}
         </h1>
         <ArchiveList
           sortedDates={sortedDates}
           grouped={grouped}
           locale={locale}
-          isFa={isFa}
+          isFr={isFr}
           catLabels={dict.categories as Record<string, string>}
         />
       </div>

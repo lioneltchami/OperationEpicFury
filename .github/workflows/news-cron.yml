@@ -92,10 +92,10 @@ jobs:
 
             <body — 2-4 sentences, factual>
 
-            ### فارسی
-            **<headline_fa>**
+            ### Français
+            **<headline_fr>**
 
-            <body_fa>
+            <body_fr>
 
             ---
 
@@ -114,8 +114,8 @@ jobs:
               "confidence": "unconfirmed",
               "sources": [{"name": "<outlet>", "url": "<article url>", "region": "<region>"}],
               "breaking": <true|false>,
-              "headline_fa": "<Farsi headline>",
-              "body_fa": "<Farsi body>"
+              "headline_fr": "<French headline>",
+              "body_fr": "<French body>"
             }
             ```
 
@@ -129,9 +129,9 @@ jobs:
             - ONLY source: The four news websites listed above. Do NOT use web search or any other website.
             - ONLY TOPIC: Operation Epic Fury (Iran-Israel-US military conflict). Ignore ALL other news.
             - TIMESTAMP: Use the article's published timestamp. Convert to ET (America/New_York). Format: "YYYY-MM-DD HH:MM".
-            - You MUST write Farsi/Persian text as raw UTF-8 characters, NEVER as Unicode escape sequences.
+            - You MUST write French text as raw UTF-8 characters, NEVER as Unicode escape sequences.
             - The Event JSON must be valid JSON in ```json fences inside a <details> block.
-            - Provide BOTH English and Farsi translations.
+            - Provide BOTH English and French translations.
             - Set confidence to "unconfirmed" for single-source events. If multiple sources from this batch confirm the same event, set to "confirmed".
             - Set breaking to true only for major developments.
             - If no new developments found, do nothing and say so.
@@ -231,10 +231,10 @@ jobs:
 
             <body — 2-4 sentences, factual>
 
-            ### فارسی
-            **<headline_fa>**
+            ### Français
+            **<headline_fr>**
 
-            <body_fa>
+            <body_fr>
 
             ---
 
@@ -253,8 +253,8 @@ jobs:
               "confidence": "<confirmed|unconfirmed>",
               "sources": [{"name": "<outlet>", "url": "<article url>", "region": "<region>"}],
               "breaking": <true|false>,
-              "headline_fa": "<Farsi headline>",
-              "body_fa": "<Farsi body>"
+              "headline_fr": "<French headline>",
+              "body_fr": "<French body>"
             }
             ```
 
@@ -268,9 +268,9 @@ jobs:
             - ONLY source: The nine news websites listed above. Do NOT use web search or any other website.
             - ONLY TOPIC: Operation Epic Fury (Iran-Israel-US military conflict). Ignore ALL other news.
             - TIMESTAMP: Use the article's published timestamp. Convert to ET (America/New_York). Format: "YYYY-MM-DD HH:MM".
-            - You MUST write Farsi/Persian text as raw UTF-8 characters, NEVER as Unicode escape sequences.
+            - You MUST write French text as raw UTF-8 characters, NEVER as Unicode escape sequences.
             - The Event JSON must be valid JSON in ```json fences inside a <details> block.
-            - Provide BOTH English and Farsi translations.
+            - Provide BOTH English and French translations.
             - If multiple sources (especially from different bias categories) cover the same event, list ALL of them in the sources array and set confidence to "confirmed".
             - Set breaking to true only for major developments.
             - If no new developments found, do nothing and say so.
@@ -370,10 +370,10 @@ jobs:
 
             <body — 2-4 sentences, factual. If sourced from IRNA, prefix with "According to Iranian state media, ...">
 
-            ### فارسی
-            **<headline_fa>**
+            ### Français
+            **<headline_fr>**
 
-            <body_fa>
+            <body_fr>
 
             ---
 
@@ -392,8 +392,8 @@ jobs:
               "confidence": "<confirmed|unconfirmed|disputed>",
               "sources": [{"name": "<outlet>", "url": "<article url>", "region": "<region>"}],
               "breaking": <true|false>,
-              "headline_fa": "<Farsi headline>",
-              "body_fa": "<Farsi body>"
+              "headline_fr": "<French headline>",
+              "body_fr": "<French body>"
             }
             ```
 
@@ -407,9 +407,9 @@ jobs:
             - ONLY source: The seven news websites listed above. Do NOT use web search or any other website.
             - ONLY TOPIC: Operation Epic Fury (Iran-Israel-US military conflict). Ignore ALL other news.
             - TIMESTAMP: Use the article's published timestamp. Convert to ET (America/New_York). Format: "YYYY-MM-DD HH:MM".
-            - You MUST write Farsi/Persian text as raw UTF-8 characters, NEVER as Unicode escape sequences.
+            - You MUST write French text as raw UTF-8 characters, NEVER as Unicode escape sequences.
             - The Event JSON must be valid JSON in ```json fences inside a <details> block.
-            - Provide BOTH English and Farsi translations.
+            - Provide BOTH English and French translations.
             - IRNA-only events should have confidence "unconfirmed". If IRNA contradicts other sources, set confidence to "disputed".
             - If multiple sources cover the same event, list ALL in the sources array.
             - Set breaking to true only for major developments.

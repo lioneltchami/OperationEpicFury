@@ -1,10 +1,10 @@
-import { generateAtom } from "@/lib/feed";
+import { generateRss } from "@/lib/feed";
 
 export async function GET() {
-  const xml = await generateAtom("fa");
+  const xml = await generateRss("fr");
   return new Response(xml, {
     headers: {
-      "Content-Type": "application/atom+xml; charset=utf-8",
+      "Content-Type": "application/rss+xml; charset=utf-8",
       "Cache-Control": "public, max-age=300, s-maxage=300",
     },
   });

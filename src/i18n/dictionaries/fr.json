@@ -1,0 +1,95 @@
+{
+  "hero": {
+    "date": "OPÉRATION EPIC FURY",
+    "headline1": "OPÉRATION",
+    "headline2": "EPIC FURY",
+    "subtitle": "Les États-Unis et Israël ont lancé des frappes coordonnées contre l'Iran dans la plus grande opération militaire au Moyen-Orient depuis l'invasion de l'Irak en 2003.",
+    "opUS": "US : EPIC FURY",
+    "opIsrael": "ISRAËL : ROARING LION",
+    "opIran": "IRAN : TRUE PROMISE 4",
+    "scroll": "Défiler pour la chronologie"
+  },
+  "ticker": {
+    "headlines": [
+      "OPÉRATION EPIC FURY",
+      "GUIDE SUPRÊME KHAMENEI CONFIRMÉ MORT",
+      "AHMADINEJAD CONFIRMÉ MORT",
+      "48 HAUTS RESPONSABLES IRANIENS TUÉS",
+      "200+ AVIONS DE COMBAT DÉPLOYÉS",
+      "600+ CIBLES FRAPPÉES",
+      "L'IRAN RIPOSTE AVEC 340+ MISSILES",
+      "6 MILITAIRES AMÉRICAINS TUÉS",
+      "11 ISRAÉLIENS TUÉS DANS LES FRAPPES IRANIENNES",
+      "L'IRAN TIRE DES MISSILES SUR CHYPRE",
+      "10 PAYS FERMENT LEUR ESPACE AÉRIEN",
+      "ALERTE SUR LE DÉTROIT D'ORMUZ",
+      "555+ TUÉS EN IRAN",
+      "CÉLÉBRATIONS À TÉHÉRAN"
+    ]
+  },
+  "stats": {
+    "killed": "Tués en Iran",
+    "injured": "Blessés",
+    "usKilled": "Américains tués",
+    "israeliKilled": "Israéliens tués",
+    "jets": "Avions israéliens",
+    "targets": "Cibles frappées",
+    "missiles": "Missiles iraniens tirés",
+    "countries": "Pays touchés"
+  },
+  "timeline": {
+    "title": "Minute par minute",
+    "subtitle": "CHRONOLOGIE COMPLÈTE",
+    "all": "Tout",
+    "noResults": "Aucun événement trouvé",
+    "allSources": "Toutes les sources",
+    "sourceUS": "US/Occidental",
+    "sourceEU": "Européen",
+    "sourceME": "Moyen-Orient",
+    "sourceAsia": "Asiatique",
+    "sourceOther": "Autre"
+  },
+  "footer": {
+    "sources": "Sources",
+    "tagline": "epicfuryops.info — Chronologie Opération Epic Fury",
+    "disclaimer": "Toutes les informations proviennent de grands médias. Ceci est un projet de documentation."
+  },
+  "categories": {
+    "strike": "FRAPPE",
+    "retaliation": "RIPOSTE",
+    "announcement": "DÉCLARATION",
+    "casualty": "VICTIME",
+    "world-reaction": "RÉACTION MONDIALE",
+    "breaking": "URGENT",
+    "breaking-important": "URGENT IMPORTANT"
+  },
+  "common": {
+    "source": "Source",
+    "breaking": "URGENT",
+    "tehranTime": "Téhéran",
+    "backToTimeline": "Retour à la chronologie",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "readMore": "Lire la suite"
+  },
+  "notifications": {
+    "title": "Restez informé",
+    "description": "Recevez une notification lors de la publication de nouveaux événements.",
+    "subscribe": "S'abonner",
+    "unsubscribe": "Se désabonner",
+    "updatePreferences": "Mettre à jour les préférences",
+    "selectAll": "Toutes les catégories",
+    "groupMilitary": "Militaire",
+    "groupDiplomatic": "Diplomatique",
+    "groupUrgent": "Urgent",
+    "groupCasualties": "Victimes",
+    "notSupported": "Les notifications push ne sont pas prises en charge par ce navigateur.",
+    "iosHomescreen": "Pour recevoir les notifications push sur iOS, ajoutez d'abord ce site à votre écran d'accueil :",
+    "iosStep1": "Appuyez sur le bouton Partager (carré avec flèche) dans Safari",
+    "iosStep2": "Faites défiler et appuyez sur \"Ajouter à l'écran d'accueil\"",
+    "iosStep3": "Ouvrez l'application depuis votre écran d'accueil, puis revenez ici pour vous abonner",
+    "permissionDenied": "Les notifications sont bloquées. Veuillez les activer dans les paramètres de votre navigateur.",
+    "subscribed": "Vous êtes abonné !",
+    "subscribedDesc": "Vous recevrez des notifications pour les catégories sélectionnées."
+  }
+}

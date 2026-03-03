@@ -1,0 +1,70 @@
+name: Translate Event
+
+on:
+  repository_dispatch:
+    types: [translate_event]
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Translate with Claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: '--allowed-tools "Bash(curl:*)"'
+          prompt: |
+            You need to translate a timeline event. Here are the details:
+
+            Event ID: ${{ github.event.client_payload.event_id }}
+            Site URL: ${{ vars.SITE_URL }}
+            Publish Secret: ${{ secrets.PUBLISH_SECRET }}
+
+            ## Step 1: Fetch the event
+
+            Run this command:
+            ```
+            curl -s "${{ vars.SITE_URL }}/api/events/${{ github.event.client_payload.event_id }}"
+            ```
+
+            Parse the JSON response. Look at the `headline`, `body`, `headline_fr`, and `body_fr` fields.
+
+            ## Step 2: Detect language and translate
+
+            Determine what needs translating:
+            - If `headline_fr` and `body_fr` are missing/empty: translate headline+body from English to French
+            - If `headline` looks like Persian/Arabic script and `headline_fr` is empty: the user wrote in French in the headline field. Set headline_fr = headline, body_fr = body, then translate to English for headline and body.
+            - If both English and Farsi are already filled: skip translation, just log that no translation needed.
+
+            For French translation:
+            - Write natural, fluent French (Farsi)
+            - Use formal news style
+            - Keep proper nouns in their standard French forms (e.g. ایران, آمریکا, اسرائیل)
+            - Translate military/political terms accurately
+
+            For English translation (if input was French):
+            - Write natural, professional English
+            - AP news style
+
+            ## Step 3: Update the event
+
+            Use curl to PUT the translation back:
+
+            ```
+            curl -sf -X PUT "${{ vars.SITE_URL }}/api/events/${{ github.event.client_payload.event_id }}" \
+              -H "Authorization: Bearer ${{ secrets.PUBLISH_SECRET }}" \
+              -H "Content-Type: application/json" \
+              -d '{"headline": "<en headline>", "body": "<en body>", "headline_fr": "<fa headline>", "body_fr": "<fa body>"}'
+            ```
+
+            CRITICAL: Write French text as raw UTF-8 characters, NEVER as \u escape sequences.
+            CRITICAL: Make sure the JSON is valid. Escape any double quotes inside strings.
+            CRITICAL: Only include the fields you are updating in the PUT payload.

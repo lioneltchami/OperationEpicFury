@@ -13,7 +13,7 @@ function tokenize(text: string): string[] {
 }
 
 function eventTokens(event: TimelineEvent): string[] {
-  const text = [event.headline, event.body, event.headline_fa, event.body_fa, event.source, event.category]
+  const text = [event.headline, event.body, event.headline_fr, event.body_fr, event.source, event.category]
     .filter(Boolean)
     .join(" ");
   return [...new Set(tokenize(text))];
@@ -111,7 +111,7 @@ async function searchFullScan(tokens: string[], limit: number): Promise<Timeline
 
   return events
     .map((event) => {
-      const haystack = [event.headline, event.body, event.headline_fa, event.body_fa, event.source, event.category]
+      const haystack = [event.headline, event.body, event.headline_fr, event.body_fr, event.source, event.category]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();

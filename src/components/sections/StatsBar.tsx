@@ -23,8 +23,8 @@ interface StatsBarProps {
 
 export const StatsBar = ({ stats }: StatsBarProps) => {
   const { dict, locale } = useLocale();
-  const isFa = locale === "fa";
-  const monoClass = isFa ? "" : "font-mono";
+  const isFr = locale === "fr";
+  const monoClass = isFr ? "" : "font-mono";
 
   if (!stats) return null;
 

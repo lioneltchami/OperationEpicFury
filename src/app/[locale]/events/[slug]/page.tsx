@@ -8,7 +8,7 @@ import { LocalTime } from "@/components/ui/LocalTime";
 import { MediaGallery } from "@/components/ui/MediaGallery";
 import { ShareButtons } from "@/components/ui/ShareButtons";
 import { SourcePerspectives } from "@/components/ui/SourcePerspectives";
-import { SITE_URL, SITE_NAME, SITE_NAME_FA } from "@/lib/utils";
+import { SITE_URL, SITE_NAME, SITE_NAME_FR } from "@/lib/utils";
 
 const EventMap = dynamic(() => import("@/components/ui/EventMap"), { ssr: false });
 
@@ -38,9 +38,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const event = await getEventBySlug(slug);
   if (!event) return {};
 
-  const isFa = locale === "fa";
-  const title = isFa && event.headline_fa ? event.headline_fa : event.headline;
-  const description = isFa && event.body_fa ? event.body_fa : event.body;
+  const isFr = locale === "fr";
+  const title = isFr && event.headline_fr ? event.headline_fr : event.headline;
+  const description = isFr && event.body_fr ? event.body_fr : event.body;
   const truncatedDesc = description.length > 160 ? description.slice(0, 157) + "..." : description;
 
   return {
@@ -83,10 +83,10 @@ export default async function EventPage({ params }: Props) {
 
   if (!event) notFound();
 
-  const isFa = locale === "fa";
-  const isRtl = locale === "fa";
-  const headline = isFa && event.headline_fa ? event.headline_fa : event.headline;
-  const body = isFa && event.body_fa ? event.body_fa : event.body;
+  const isFr = locale === "fr";
+  
+  const headline = isFr && event.headline_fr ? event.headline_fr : event.headline;
+  const body = isFr && event.body_fr ? event.body_fr : event.body;
   const catLabels = dict.categories as Record<string, string>;
   const catLabel = catLabels[event.category] ?? event.category;
   const confidenceLabel = event.confidence ?? "confirmed";
@@ -138,12 +138,12 @@ export default async function EventPage({ params }: Props) {
               className="flex items-center gap-2 text-xs text-zinc-500 hover:text-white transition-colors"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d={isRtl ? "M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" : "M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"} />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
               </svg>
               {(dict.common as Record<string, string>).backToTimeline}
             </a>
             <span className="text-[11px] text-zinc-500 font-mono tracking-wider uppercase">
-              {isFa ? SITE_NAME_FA : SITE_NAME}
+              {isFr ? SITE_NAME_FR : SITE_NAME}
             </span>
           </div>
         </div>
@@ -189,7 +189,7 @@ export default async function EventPage({ params }: Props) {
           {/* Body */}
           <div
             className={`text-base sm:text-lg leading-relaxed text-zinc-300 mb-8 whitespace-pre-wrap ${
-              isFa ? "leading-loose" : ""
+              isFr ? "leading-loose" : ""
             }`}
           >
             {body}
@@ -252,7 +252,7 @@ export default async function EventPage({ params }: Props) {
                     rel="noopener noreferrer"
                     className="text-xs text-red-400/70 hover:text-red-400 transition-colors font-mono"
                   >
-                    {event.source} {isRtl ? "\u2190" : "\u2192"}
+                    {event.source} {"→"}
                   </a>
                 </div>
               )}
@@ -279,7 +279,7 @@ export default async function EventPage({ params }: Props) {
                   {(dict.common as Record<string, string>).previous}
                 </span>
                 <span className="text-sm text-zinc-400 group-hover:text-white transition-colors line-clamp-2">
-                  {isFa && adjacent.prev.headline_fa ? adjacent.prev.headline_fa : adjacent.prev.headline}
+                  {isFr && adjacent.prev.headline_fr ? adjacent.prev.headline_fr : adjacent.prev.headline}
                 </span>
                 <span className="text-[11px] text-zinc-500 font-mono" dir="ltr">
                   <LocalTime timeET={adjacent.prev.timeET} showDate={false} />
@@ -297,7 +297,7 @@ export default async function EventPage({ params }: Props) {
                   {(dict.common as Record<string, string>).next}
                 </span>
                 <span className="text-sm text-zinc-400 group-hover:text-white transition-colors line-clamp-2">
-                  {isFa && adjacent.next.headline_fa ? adjacent.next.headline_fa : adjacent.next.headline}
+                  {isFr && adjacent.next.headline_fr ? adjacent.next.headline_fr : adjacent.next.headline}
                 </span>
                 <span className="text-[11px] text-zinc-500 font-mono" dir="ltr">
                   <LocalTime timeET={adjacent.next.timeET} showDate={false} />

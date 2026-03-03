@@ -1,0 +1,73 @@
+name: Test News Workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-news:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - name: Ensure labels exist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create "pending-review" --repo ${{ github.repository }} --color "FBCA04" --description "News event awaiting review" --force
+          gh label create "published" --repo ${{ github.repository }} --color "0E8A16" --description "News event published to timeline" --force
+          gh label create "rejected" --repo ${{ github.repository }} --color "D93F0B" --description "News event rejected" --force
+          gh label create "cat:strike" --repo ${{ github.repository }} --color "B60205" --force
+          gh label create "cat:retaliation" --repo ${{ github.repository }} --color "D93F0B" --force
+          gh label create "cat:announcement" --repo ${{ github.repository }} --color "0075CA" --force
+          gh label create "cat:casualty" --repo ${{ github.repository }} --color "E4E669" --force
+          gh label create "cat:world-reaction" --repo ${{ github.repository }} --color "7057FF" --force
+          gh label create "cat:breaking" --repo ${{ github.repository }} --color "FFA500" --force
+
+      - name: Create test issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --repo ${{ github.repository }} \
+            --title "[News] Test Event — US Confirms Second Wave of Strikes on Iranian Nuclear Sites" \
+            --label "pending-review" \
+            --label "cat:strike" \
+            --body "$(cat <<'ISSUE_EOF'
+          ## Candidate Event — Pending Review
+
+          **Category:** \`strike\`
+          **Source:** [Reuters](https://www.reuters.com/world/test-article)
+
+          ### English
+          **US Confirms Second Wave of Strikes on Iranian Nuclear Sites**
+
+          CENTCOM confirms a second wave of precision strikes targeting Iranian nuclear enrichment facilities at Natanz and Fordow. Pentagon spokesperson states the strikes destroyed underground centrifuge halls using GBU-57 bunker-buster munitions. IAEA reports loss of monitoring at both sites.
+
+          ### Français
+          **آمریکا موج دوم حملات به تأسیسات هسته‌ای ایران را تأیید کرد**
+
+          سنتکام موج دوم حملات دقیق به تأسیسات غنی‌سازی هسته‌ای ایران در نطنز و فردو را تأیید کرد. سخنگوی پنتاگون اعلام کرد حملات سالن‌های سانتریفیوژ زیرزمینی را با استفاده از بمب‌های سنگرشکن GBU-57 نابود کرده است.
+
+          ---
+
+          <details>
+          <summary>Event JSON</summary>
+
+          ```json
+          {
+            "timeET": "2026-02-28 18:30",
+            "headline": "US Confirms Second Wave of Strikes on Iranian Nuclear Sites",
+            "body": "CENTCOM confirms a second wave of precision strikes targeting Iranian nuclear enrichment facilities at Natanz and Fordow. Pentagon spokesperson states the strikes destroyed underground centrifuge halls using GBU-57 bunker-buster munitions. IAEA reports loss of monitoring at both sites.",
+            "category": "strike",
+            "source": "Reuters",
+            "sourceUrl": "https://www.reuters.com/world/test-article",
+            "breaking": true,
+            "headline_fr": "آمریکا موج دوم حملات به تأسیسات هسته‌ای ایران را تأیید کرد",
+            "body_fr": "سنتکام موج دوم حملات دقیق به تأسیسات غنی‌سازی هسته‌ای ایران در نطنز و فردو را تأیید کرد. سخنگوی پنتاگون اعلام کرد حملات سالن‌های سانتریفیوژ زیرزمینی را با استفاده از بمب‌های سنگرشکن GBU-57 نابود کرده است."
+          }
+          ```
+
+          </details>
+
+          ISSUE_EOF
+          )"

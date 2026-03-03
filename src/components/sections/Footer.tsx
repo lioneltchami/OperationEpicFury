@@ -20,8 +20,8 @@ const sources = [
 
 export const Footer = () => {
   const { dict, locale } = useLocale();
-  const isFa = locale === "fa";
-  const monoClass = isFa ? "" : "font-mono";
+  const isFr = locale === "fr";
+  const monoClass = isFr ? "" : "font-mono";
 
   return (
     <footer className="relative py-16 bg-black border-t border-white/5">
@@ -65,7 +65,7 @@ export const Footer = () => {
               <a
                 href={`/${locale}/archive`}
                 className="text-zinc-500 hover:text-white transition-colors"
-                aria-label={isFa ? "آرشیو" : "Archive"}
+                aria-label={isFr ? "آرشیو" : "Archive"}
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
@@ -92,10 +92,10 @@ export const Footer = () => {
           {/* eslint-disable @next/next/no-html-link-for-pages */}
           <div className="mt-8 pt-6 border-t border-white/5 flex flex-wrap items-center gap-4 text-[11px]">
             <a href="/api/export?format=json" className={`text-zinc-500 hover:text-white transition-colors ${monoClass}`}>
-              {isFa ? "خروجی JSON" : "Export JSON"}
+              {isFr ? "خروجی JSON" : "Export JSON"}
             </a>
             <a href="/api/export?format=csv" className={`text-zinc-500 hover:text-white transition-colors ${monoClass}`}>
-              {isFa ? "خروجی CSV" : "Export CSV"}
+              {isFr ? "خروجی CSV" : "Export CSV"}
             </a>
             <button
               onClick={() => {
@@ -104,7 +104,7 @@ export const Footer = () => {
               }}
               className={`text-zinc-500 hover:text-white transition-colors ${monoClass}`}
             >
-              {isFa ? "کد جاسازی" : "Embed code ⎘"}
+              {isFr ? "کد جاسازی" : "Embed code ⎘"}
             </button>
           </div>
           {/* eslint-enable @next/next/no-html-link-for-pages */}

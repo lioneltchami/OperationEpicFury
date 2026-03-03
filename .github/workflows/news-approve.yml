@@ -1,0 +1,90 @@
+name: Approve/Reject News Event
+
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  approve:
+    if: |
+      github.event.issue.state_reason == 'completed' &&
+      contains(join(github.event.issue.labels.*.name, ','), 'pending-review')
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Publish event to timeline
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PUBLISH_SECRET: ${{ secrets.PUBLISH_SECRET }}
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          BODY=$(gh issue view ${{ github.event.issue.number }} \
+            --repo ${{ github.repository }} \
+            --json body -q .body)
+
+          # Try ```json fences, then ~~~json fences, then <pre> tags, then raw JSON in <details>
+          EVENT_JSON=$(echo "$BODY" | sed -n '/```json/,/```/p' | sed '1d;$d' | sed 's/^[[:space:]]*//')
+          if [ -z "$EVENT_JSON" ]; then
+            EVENT_JSON=$(echo "$BODY" | sed -n '/~~~json/,/~~~/p' | sed '1d;$d' | sed 's/^[[:space:]]*//')
+          fi
+          if [ -z "$EVENT_JSON" ]; then
+            EVENT_JSON=$(echo "$BODY" | sed -n '/<pre>/,/<\/pre>/p' | sed '1d;$d' | sed 's/^[[:space:]]*//')
+          fi
+          if [ -z "$EVENT_JSON" ]; then
+            EVENT_JSON=$(echo "$BODY" | sed -n '/<details>/,/<\/details>/p' | sed -n '/^{/,/^}/p')
+          fi
+
+          if [ -z "$EVENT_JSON" ]; then
+            echo "::error::Could not extract event JSON from issue body"
+            gh issue comment ${{ github.event.issue.number }} \
+              --repo ${{ github.repository }} \
+              --body "Failed to extract event JSON from issue body."
+            exit 1
+          fi
+
+          echo "Publishing event..."
+          RESPONSE=$(curl -sf -X POST "${SITE_URL}/api/events/publish" \
+            -H "Authorization: Bearer ${PUBLISH_SECRET}" \
+            -H "Content-Type: application/json" \
+            -d "$EVENT_JSON") || {
+            echo "::error::Failed to publish event"
+            gh issue comment ${{ github.event.issue.number }} \
+              --repo ${{ github.repository }} \
+              --body "Failed to publish event to timeline. Check SITE_URL and PUBLISH_SECRET."
+            gh issue reopen ${{ github.event.issue.number }} \
+              --repo ${{ github.repository }}
+            exit 1
+          }
+
+          echo "Published: $RESPONSE"
+
+          gh issue edit ${{ github.event.issue.number }} \
+            --repo ${{ github.repository }} \
+            --remove-label "pending-review" \
+            --add-label "published"
+
+          gh issue comment ${{ github.event.issue.number }} \
+            --repo ${{ github.repository }} \
+            --body "Published to timeline."
+
+  reject:
+    if: |
+      github.event.issue.state_reason == 'not_planned' &&
+      contains(join(github.event.issue.labels.*.name, ','), 'pending-review')
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Reject event
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue edit ${{ github.event.issue.number }} \
+            --repo ${{ github.repository }} \
+            --remove-label "pending-review" \
+            --add-label "rejected"
+
+          gh issue comment ${{ github.event.issue.number }} \
+            --repo ${{ github.repository }} \
+            --body "Rejected."

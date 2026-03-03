@@ -30,9 +30,9 @@ interface TimelineProps {
 }
 
 export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps) => {
-  const { dict, isRtl, locale } = useLocale();
-  const isFa = locale === "fa";
-  const monoClass = isFa ? "" : "font-mono";
+  const { dict, locale } = useLocale();
+  const isFr = locale === "fr";
+  const monoClass = isFr ? "" : "font-mono";
   const catLabels = dict.categories as Record<string, string>;
   const timelineDict = dict.timeline as Record<string, string>;
 
@@ -180,7 +180,7 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
 
         {/* Timeline with tracing beam */}
         {displayed.length > 0 ? (
-          <TracingBeam className={isRtl ? "pr-4 md:pr-16" : "pl-4 md:pl-16"}>
+          <TracingBeam className={"pl-4 md:pl-16"}>
             {displayed.map((event, i) => (
               <div
                 key={event.id}

@@ -43,8 +43,8 @@ export interface TimelineEvent {
   source: string;
   sourceUrl: string;
   breaking?: boolean;
-  headline_fa?: string;
-  body_fa?: string;
+  headline_fr?: string;
+  body_fr?: string;
   status?: "draft" | "published";
   slug?: string;
   media?: MediaItem[];

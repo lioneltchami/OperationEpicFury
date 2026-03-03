@@ -37,7 +37,7 @@ const biasColors: Record<string, { dot: string; label: string }> = {
 };
 
 export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
-  const { dict, locale, isRtl } = useLocale();
+  const { dict, locale } = useLocale();
   const [showShare, setShowShare] = useState(false);
   const [copied, setCopied] = useState(false);
   const cat = categoryConfig[event.category];
@@ -46,9 +46,9 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
   const knownSource = findSource(event.source);
   const bias = knownSource ? biasColors[knownSource.bias] : null;
 
-  const isFa = locale === "fa";
-  const headline = isFa && event.headline_fa ? event.headline_fa : event.headline;
-  const body = isFa && event.body_fa ? event.body_fa : event.body;
+  const isFr = locale === "fr";
+  const headline = isFr && event.headline_fr ? event.headline_fr : event.headline;
+  const body = isFr && event.body_fr ? event.body_fr : event.body;
 
   return (
     <m.div
@@ -58,7 +58,7 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
       viewport={{ once: true, margin: "-50px" }}
       className={cn(
         "relative pb-12 group",
-        isRtl ? "pr-8 md:pr-12" : "pl-8 md:pl-12"
+        "pl-8 md:pl-12"
       )}
       role="article"
       aria-label={`${event.timeET} — ${headline}`}
@@ -78,7 +78,7 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
       <div
         className={cn(
           "absolute top-1 w-3 h-3 rounded-full bg-red-600 border-2 border-red-400 shadow-[0_0_12px_rgba(220,38,38,0.6)] group-hover:shadow-[0_0_20px_rgba(220,38,38,0.8)] transition-shadow z-10",
-          isRtl ? "right-0" : "left-0"
+          "left-0"
         )}
       />
 
@@ -86,7 +86,7 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
       <div
         className={cn(
           "absolute top-4 bottom-0 w-[2px] bg-gradient-to-b from-red-600/40 to-transparent",
-          isRtl ? "right-[5px]" : "left-[5px]"
+          "left-[5px]"
         )}
       />
 
@@ -146,7 +146,7 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
         <p className={cn(
           "text-sm leading-relaxed mb-3",
           event.category === "breaking-important" ? "text-red-200" : "text-zinc-400",
-          isFa && "leading-loose"
+          isFr && "leading-loose"
         )}>
           {body}
         </p>
@@ -184,7 +184,7 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
               />
             )}
             <span>{dict.common.source}:</span>{" "}
-            <span className="font-mono">{event.source}</span> {isRtl ? "\u2190" : "\u2192"}
+            <span className="font-mono">{event.source}</span> {"→"}
           </a>
           <div className="flex items-center gap-2">
             {showShare && event.slug && (
