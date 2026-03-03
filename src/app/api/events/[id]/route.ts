@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { authorize } from "@/lib/authorize";
-import { getEventById, updateEvent, deleteEvent } from "@/lib/kv";
+import { deleteEvent, getEventById, updateEvent } from "@/lib/kv";
 import { notifySubscribers } from "@/lib/notify";
-import { validateEventUpdate } from "@/lib/validate-event";
 import { revalidateTimeline } from "@/lib/revalidate";
+import { validateEventUpdate } from "@/lib/validate-event";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -36,8 +36,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
   // Check if this is a draft->published transition
   const existing = await getEventById(id);
   const isPublishing =
-    existing?.status === "draft" &&
-    result.data.status === "published";
+    existing?.status === "draft" && result.data.status === "published";
 
   const updated = await updateEvent(id, result.data);
   if (!updated) {
@@ -49,7 +48,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     notifySubscribers(updated).catch(console.error);
   }
 
-  revalidateTimeline();
+  revalidateTimeline(updated.slug);
   return NextResponse.json(updated);
 }
 
@@ -59,10 +58,11 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
+  const existing = await getEventById(id);
   const ok = await deleteEvent(id);
   if (!ok) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  revalidateTimeline();
+  revalidateTimeline(existing?.slug);
   return NextResponse.json({ ok: true });
 }

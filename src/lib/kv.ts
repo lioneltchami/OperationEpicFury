@@ -67,8 +67,32 @@ export async function getPublishedEventsPaginated(
   offset: number,
   limit: number,
 ): Promise<{ events: TimelineEvent[]; total: number }> {
-  const all = await getPublishedEvents();
-  return { events: all.slice(offset, offset + limit), total: all.length };
+  const redis = getRedis();
+
+  const ids = await redis.zrevrange(INDEX_KEY, 0, -1);
+  if (ids.length === 0) return { events: [], total: 0 };
+
+  const pipeline = redis.pipeline();
+  for (const id of ids) {
+    pipeline.hget(HASH_KEY, id);
+  }
+  const results = await pipeline.exec();
+
+  const published: TimelineEvent[] = [];
+  for (const result of results ?? []) {
+    const [err, raw] = result;
+    if (!err && raw) {
+      const event = JSON.parse(raw as string) as TimelineEvent;
+      if (event.timeET && event.status !== "draft") {
+        published.push(event);
+      }
+    }
+  }
+
+  return {
+    events: published.slice(offset, offset + limit),
+    total: published.length,
+  };
 }
 
 export async function getDraftEvents(): Promise<TimelineEvent[]> {

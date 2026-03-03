@@ -8,9 +8,15 @@ let cachedRedis: Redis | null = null;
  */
 export function getRedis(): Redis {
   if (!cachedRedis) {
-    cachedRedis = new Redis(process.env.KV_REDIS_URL!, {
+    const url = process.env.KV_REDIS_URL!;
+    const useTls = url.startsWith("rediss://");
+    cachedRedis = new Redis(url, {
       maxRetriesPerRequest: 3,
       lazyConnect: true,
+      family: 6,
+      enableReadyCheck: false,
+      connectTimeout: 10000,
+      ...(useTls ? { tls: {} } : {}),
     });
   }
   return cachedRedis;
