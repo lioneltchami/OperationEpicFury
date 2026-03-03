@@ -1,0 +1,89 @@
+{
+  "hero": {
+    "date": "OPERATION EPIC FURY",
+    "headline1": "OPERATION",
+    "headline2": "EPIC FURY",
+    "subtitle": "The US and Israel launched coordinated strikes on Iran in the largest military operation in the Middle East since the 2003 invasion of Iraq.",
+    "opUS": "US: EPIC FURY",
+    "opIsrael": "ISRAEL: ROARING LION",
+    "opIran": "IRAN: TRUE PROMISE 4",
+    "scroll": "Scroll for timeline"
+  },
+  "ticker": {
+    "headlines": [
+      "OPERATION EPIC FURY",
+      "SUPREME LEADER KHAMENEI CONFIRMED DEAD",
+      "AHMADINEJAD CONFIRMED DEAD",
+      "48 SENIOR IRANIAN OFFICIALS KILLED",
+      "200+ FIGHTER JETS DEPLOYED",
+      "600+ TARGETS STRUCK",
+      "IRAN RETALIATES WITH 340+ MISSILES",
+      "6 US SERVICE MEMBERS KILLED",
+      "11 ISRAELIS KILLED IN IRANIAN STRIKES",
+      "IRAN FIRES MISSILES AT CYPRUS",
+      "10 COUNTRIES CLOSE AIRSPACE",
+      "STRAIT OF HORMUZ WARNING ISSUED",
+      "555+ KILLED IN IRAN",
+      "CELEBRATIONS IN TEHRAN"
+    ]
+  },
+  "stats": {
+    "killed": "Killed in Iran",
+    "injured": "Injured",
+    "usKilled": "Americans Killed",
+    "israeliKilled": "Israelis Killed",
+    "jets": "Israeli Jets",
+    "targets": "Targets Struck",
+    "missiles": "Iranian Missiles Fired",
+    "countries": "Countries Hit"
+  },
+  "timeline": {
+    "title": "Minute by Minute",
+    "subtitle": "COMPLETE TIMELINE",
+    "all": "All",
+    "noResults": "No events found"
+  },
+  "footer": {
+    "sources": "Sources",
+    "tagline": "opepicfury.info — Operation Epic Fury Timeline",
+    "disclaimer": "All information sourced from major news outlets. This is a documentation project."
+  },
+  "categories": {
+    "strike": "STRIKE",
+    "retaliation": "RETALIATION",
+    "announcement": "STATEMENT",
+    "casualty": "CASUALTY",
+    "world-reaction": "WORLD REACTION",
+    "breaking": "BREAKING",
+    "breaking-important": "BREAKING IMPORTANT"
+  },
+  "common": {
+    "source": "Source",
+    "breaking": "BREAKING",
+    "tehranTime": "Tehran",
+    "backToTimeline": "Back to timeline",
+    "previous": "Previous",
+    "next": "Next",
+    "readMore": "Read more"
+  },
+  "notifications": {
+    "title": "Stay Updated",
+    "description": "Get notified when new events are published.",
+    "subscribe": "Subscribe",
+    "unsubscribe": "Unsubscribe",
+    "updatePreferences": "Update Preferences",
+    "selectAll": "All Categories",
+    "groupMilitary": "Military",
+    "groupDiplomatic": "Diplomatic",
+    "groupUrgent": "Urgent",
+    "groupCasualties": "Casualties",
+    "notSupported": "Push notifications are not supported in this browser.",
+    "iosHomescreen": "To receive push notifications on iOS, you need to add this site to your Home Screen first:",
+    "iosStep1": "Tap the Share button (square with arrow) in Safari",
+    "iosStep2": "Scroll down and tap \"Add to Home Screen\"",
+    "iosStep3": "Open the app from your Home Screen, then come back here to subscribe",
+    "permissionDenied": "Notifications are blocked. Please enable them in your browser settings.",
+    "subscribed": "You're subscribed!",
+    "subscribedDesc": "You'll receive notifications for your selected categories."
+  }
+}

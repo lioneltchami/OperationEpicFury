@@ -4,10 +4,16 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import { m } from "framer-motion";
 import { TracingBeam } from "@/components/ui/TracingBeam";
 import { TimelineEntry } from "@/components/ui/TimelineEntry";
-import type { TimelineEvent } from "@/data/timeline";
+import { SearchBar } from "@/components/ui/SearchBar";
+import type { TimelineEvent, EventCategory } from "@/data/timeline";
 import { useLocale } from "@/i18n/LocaleContext";
 
 const EAGER_COUNT = 20;
+
+const CATEGORIES: EventCategory[] = [
+  "strike", "retaliation", "announcement", "casualty",
+  "world-reaction", "breaking", "breaking-important",
+];
 
 interface TimelineProps {
   initialEvents: TimelineEvent[];
@@ -19,19 +25,22 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
   const { dict, isRtl, locale } = useLocale();
   const isFa = locale === "fa";
   const monoClass = isFa ? "" : "font-mono";
+  const catLabels = dict.categories as Record<string, string>;
+  const timelineDict = dict.timeline as Record<string, string>;
 
-  const [events, setEvents] = useState(initialEvents);
+  const [allEvents, setAllEvents] = useState(initialEvents);
+  const [filter, setFilter] = useState<EventCategory | null>(null);
   const [loading, setLoading] = useState(false);
-  const hasMore = events.length < totalEvents;
+  const hasMore = !filter && allEvents.length < totalEvents;
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const displayed = filter ? allEvents.filter((e) => e.category === filter) : allEvents;
 
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return;
     setLoading(true);
     try {
-      // Offset from the end since we're showing newest-first
-      // The API returns oldest-first, so we need to calculate the right offset
-      const loaded = events.length;
+      const loaded = allEvents.length;
       const remaining = totalEvents - loaded;
       const nextBatch = Math.min(pageSize, remaining);
       const offset = remaining - nextBatch;
@@ -41,16 +50,15 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
       );
       if (res.ok) {
         const data = await res.json();
-        // Reverse to maintain newest-first order
         const newEvents = [...data.events].reverse();
-        setEvents((prev) => [...prev, ...newEvents]);
+        setAllEvents((prev) => [...prev, ...newEvents]);
       }
     } catch {
       // Silently fail — user can scroll again to retry
     } finally {
       setLoading(false);
     }
-  }, [events.length, totalEvents, pageSize, loading, hasMore]);
+  }, [allEvents.length, totalEvents, pageSize, loading, hasMore]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -58,9 +66,7 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
-          loadMore();
-        }
+        if (entries[0].isIntersecting) loadMore();
       },
       { rootMargin: "400px" },
     );
@@ -77,32 +83,68 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-10"
         >
           <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
-            {dict.timeline.title}
+            {timelineDict.title}
           </h2>
           <p className={`text-zinc-500 ${monoClass} text-sm tracking-wider`}>
-            {dict.timeline.subtitle}
+            {timelineDict.subtitle}
           </p>
           <div className="mt-6 h-px w-32 mx-auto bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
         </m.div>
 
-        {/* Timeline with tracing beam */}
-        <TracingBeam className={isRtl ? "pr-4 md:pr-16" : "pl-4 md:pl-16"}>
-          {events.map((event, i) => (
-            <div
-              key={event.id}
-              style={
-                i >= EAGER_COUNT
-                  ? { contentVisibility: "auto", containIntrinsicSize: "auto 400px" }
-                  : undefined
-              }
+        {/* Search bar */}
+        <div className="mb-6">
+          <SearchBar />
+        </div>
+
+        {/* Category filter pills */}
+        <div className="flex flex-wrap justify-center gap-2 mb-12">
+          <button
+            onClick={() => setFilter(null)}
+            className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors ${
+              !filter
+                ? "bg-red-500/20 text-red-400 border-red-500/40"
+                : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
+            }`}
+          >
+            {timelineDict.all}
+          </button>
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setFilter(filter === cat ? null : cat)}
+              className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors ${
+                filter === cat
+                  ? "bg-red-500/20 text-red-400 border-red-500/40"
+                  : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
+              }`}
             >
-              <TimelineEntry event={event} />
-            </div>
+              {catLabels[cat] ?? cat}
+            </button>
           ))}
-        </TracingBeam>
+        </div>
+
+        {/* Timeline with tracing beam */}
+        {displayed.length > 0 ? (
+          <TracingBeam className={isRtl ? "pr-4 md:pr-16" : "pl-4 md:pl-16"}>
+            {displayed.map((event, i) => (
+              <div
+                key={event.id}
+                style={
+                  i >= EAGER_COUNT
+                    ? { contentVisibility: "auto", containIntrinsicSize: "auto 400px" }
+                    : undefined
+                }
+              >
+                <TimelineEntry event={event} />
+              </div>
+            ))}
+          </TracingBeam>
+        ) : (
+          <p className="text-center text-zinc-500 py-12">{timelineDict.noResults}</p>
+        )}
 
         {/* Infinite scroll sentinel */}
         {hasMore && (
