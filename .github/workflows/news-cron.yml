@@ -1,0 +1,400 @@
+name: Auto News Gathering
+
+on:
+  schedule:
+    - cron: "0 */3 * * *"
+  workflow_dispatch:
+    inputs:
+      batch:
+        description: "Run a specific batch only (1=wire/center, 2=US left+right, 3=regional). Leave empty for all."
+        required: false
+        type: choice
+        options:
+          - all
+          - "1"
+          - "2"
+          - "3"
+
+jobs:
+  # ── Batch 1: Wire services + Center (most factual, least bias) ──
+  batch-wire-center:
+    if: ${{ github.event_name == 'schedule' || github.event.inputs.batch == 'all' || github.event.inputs.batch == '1' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Gather news — Wire services & Center
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: '--allowed-tools "WebFetch,Bash(gh issue create:*),Bash(gh issue list:*),Bash(curl:*)"'
+          prompt: |
+            You are monitoring the Iran-Israel-US military conflict (Operation Epic Fury, started Feb 28 2026).
+            Your job: find NEW developments and create GitHub issues for human review.
+
+            YOUR ONLY NEWS SOURCES for this batch are these WIRE SERVICES & CENTER outlets:
+            - Reuters (Center, Global, High reliability): https://www.reuters.com/
+            - Associated Press (Center, Global, High reliability): https://apnews.com/
+            - BBC News (Center, EU/Global, High reliability): https://www.bbc.com/news
+            - Al-Monitor (Center, Middle East, High reliability): https://www.al-monitor.com/
+
+            Do NOT use web search or any other source not listed above.
+
+            ## Step 1: Gather existing headlines for dedup
+
+            Fetch published event headlines from the live API:
+            ```
+            curl -s https://opepicfury.info/api/events | jq -r '.[].headline'
+            ```
+            Then check existing GitHub issues:
+            ```
+            gh issue list --repo ${{ github.repository }} --label "pending-review" --state all --limit 100 --json title -q '.[].title'
+            gh issue list --repo ${{ github.repository }} --label "published" --state all --limit 100 --json title -q '.[].title'
+            ```
+            Collect ALL these headlines — you must NOT duplicate any of them.
+
+            ## Step 2: Fetch latest articles
+
+            Fetch the front page / main section from EACH source using WebFetch.
+            Identify new developments SPECIFICALLY about Operation Epic Fury (Iran-Israel-US military conflict).
+            IGNORE any news NOT about Operation Epic Fury.
+            Extract the article's published timestamp.
+
+            ## Step 3: Create issues for NEW events only
+
+            For each genuinely new development NOT already in existing headlines, create a GitHub issue.
+
+            Category must be one of: strike, retaliation, announcement, casualty, world-reaction, breaking, breaking-important
+
+            For EACH new event:
+            ```
+            gh issue create --repo ${{ github.repository }} \
+              --title "[News] <English headline>" \
+              --label "pending-review" \
+              --label "cat:<category>" \
+              --body "$(cat <<'ISSUE_EOF'
+            ## Candidate Event — Pending Review
+
+            **Category:** `<category>`
+            **Source:** [<news outlet name>](<link to the article>)
+            **Source Bias:** `<center|lean-left|lean-right|right>`
+            **Source Region:** `<us|eu|middle-east|asia|global>`
+
+            ### English
+            **<headline>**
+
+            <body — 2-4 sentences, factual>
+
+            ### فارسی
+            **<headline_fa>**
+
+            <body_fa>
+
+            ---
+
+            <details>
+            <summary>Event JSON</summary>
+
+            ```json
+            {
+              "timeET": "<YYYY-MM-DD HH:MM>",
+              "headline": "<English headline>",
+              "body": "<English body>",
+              "category": "<category>",
+              "source": "<news outlet name>",
+              "sourceUrl": "<link to the article>",
+              "sourceRegion": "<us|eu|middle-east|asia|global>",
+              "confidence": "unconfirmed",
+              "sources": [{"name": "<outlet>", "url": "<article url>", "region": "<region>"}],
+              "breaking": <true|false>,
+              "headline_fa": "<Farsi headline>",
+              "body_fa": "<Farsi body>"
+            }
+            ```
+
+            </details>
+
+            ISSUE_EOF
+            )"
+            ```
+
+            CRITICAL RULES:
+            - ONLY source: The four news websites listed above. Do NOT use web search or any other website.
+            - ONLY TOPIC: Operation Epic Fury (Iran-Israel-US military conflict). Ignore ALL other news.
+            - TIMESTAMP: Use the article's published timestamp. Convert to ET (America/New_York). Format: "YYYY-MM-DD HH:MM".
+            - You MUST write Farsi/Persian text as raw UTF-8 characters, NEVER as Unicode escape sequences.
+            - The Event JSON must be valid JSON in ```json fences inside a <details> block.
+            - Provide BOTH English and Farsi translations.
+            - Set confidence to "unconfirmed" for single-source events. If multiple sources from this batch confirm the same event, set to "confirmed".
+            - Set breaking to true only for major developments.
+            - If no new developments found, do nothing and say so.
+
+  # ── Batch 2: US Left + US/UK Right ──
+  batch-us-left-right:
+    if: ${{ github.event_name == 'schedule' || github.event.inputs.batch == 'all' || github.event.inputs.batch == '2' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Gather news — US Left & Right
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: '--allowed-tools "WebFetch,Bash(gh issue create:*),Bash(gh issue list:*),Bash(curl:*)"'
+          prompt: |
+            You are monitoring the Iran-Israel-US military conflict (Operation Epic Fury, started Feb 28 2026).
+            Your job: find NEW developments and create GitHub issues for human review.
+
+            YOUR ONLY NEWS SOURCES for this batch — a mix of LEFT-LEANING and RIGHT-LEANING outlets:
+
+            LEFT-LEANING:
+            - CNN (Lean Left, US): https://www.cnn.com/
+            - Washington Post (Lean Left, US): https://www.washingtonpost.com/
+            - NPR (Lean Left, US): https://www.npr.org/
+            - France 24 (Lean Left, EU): https://www.france24.com/en/
+
+            RIGHT-LEANING:
+            - Fox News (Lean Right, US): https://www.foxnews.com/category/politics/defense/wars/war-with-iran
+            - Wall Street Journal (Lean Right, US): https://www.wsj.com/
+            - New York Post (Lean Right, US): https://nypost.com/
+            - Daily Telegraph (Lean Right, UK): https://www.telegraph.co.uk/
+            - Times of Israel (Lean Right, Israel): https://www.timesofisrael.com/
+
+            Do NOT use web search or any other source not listed above.
+
+            ## Step 1: Gather existing headlines for dedup
+
+            Fetch published event headlines from the live API:
+            ```
+            curl -s https://opepicfury.info/api/events | jq -r '.[].headline'
+            ```
+            Then check existing GitHub issues:
+            ```
+            gh issue list --repo ${{ github.repository }} --label "pending-review" --state all --limit 100 --json title -q '.[].title'
+            gh issue list --repo ${{ github.repository }} --label "published" --state all --limit 100 --json title -q '.[].title'
+            ```
+            Collect ALL these headlines — you must NOT duplicate any of them.
+
+            ## Step 2: Fetch latest articles
+
+            Fetch the front page / main section from EACH source using WebFetch.
+            Identify new developments SPECIFICALLY about Operation Epic Fury (Iran-Israel-US military conflict).
+            IGNORE any news NOT about Operation Epic Fury.
+            Extract the article's published timestamp.
+
+            NOTE: You are reading from BOTH left-leaning and right-leaning sources. When the same event is covered by sources from both sides, note this in the issue body and set confidence to "confirmed". When only one side covers it, set confidence to "unconfirmed".
+
+            ## Step 3: Create issues for NEW events only
+
+            For each genuinely new development NOT already in existing headlines, create a GitHub issue.
+
+            Category must be one of: strike, retaliation, announcement, casualty, world-reaction, breaking, breaking-important
+
+            For EACH new event:
+            ```
+            gh issue create --repo ${{ github.repository }} \
+              --title "[News] <English headline>" \
+              --label "pending-review" \
+              --label "cat:<category>" \
+              --body "$(cat <<'ISSUE_EOF'
+            ## Candidate Event — Pending Review
+
+            **Category:** `<category>`
+            **Source:** [<news outlet name>](<link to the article>)
+            **Source Bias:** `<center|lean-left|lean-right|right>`
+            **Source Region:** `<us|eu|middle-east|asia|global>`
+
+            ### English
+            **<headline>**
+
+            <body — 2-4 sentences, factual>
+
+            ### فارسی
+            **<headline_fa>**
+
+            <body_fa>
+
+            ---
+
+            <details>
+            <summary>Event JSON</summary>
+
+            ```json
+            {
+              "timeET": "<YYYY-MM-DD HH:MM>",
+              "headline": "<English headline>",
+              "body": "<English body>",
+              "category": "<category>",
+              "source": "<primary news outlet name>",
+              "sourceUrl": "<link to the primary article>",
+              "sourceRegion": "<us|eu|middle-east|asia|global>",
+              "confidence": "<confirmed|unconfirmed>",
+              "sources": [{"name": "<outlet>", "url": "<article url>", "region": "<region>"}],
+              "breaking": <true|false>,
+              "headline_fa": "<Farsi headline>",
+              "body_fa": "<Farsi body>"
+            }
+            ```
+
+            </details>
+
+            ISSUE_EOF
+            )"
+            ```
+
+            CRITICAL RULES:
+            - ONLY source: The nine news websites listed above. Do NOT use web search or any other website.
+            - ONLY TOPIC: Operation Epic Fury (Iran-Israel-US military conflict). Ignore ALL other news.
+            - TIMESTAMP: Use the article's published timestamp. Convert to ET (America/New_York). Format: "YYYY-MM-DD HH:MM".
+            - You MUST write Farsi/Persian text as raw UTF-8 characters, NEVER as Unicode escape sequences.
+            - The Event JSON must be valid JSON in ```json fences inside a <details> block.
+            - Provide BOTH English and Farsi translations.
+            - If multiple sources (especially from different bias categories) cover the same event, list ALL of them in the sources array and set confidence to "confirmed".
+            - Set breaking to true only for major developments.
+            - If no new developments found, do nothing and say so.
+
+  # ── Batch 3: Regional & Non-Western ──
+  batch-regional:
+    if: ${{ github.event_name == 'schedule' || github.event.inputs.batch == 'all' || github.event.inputs.batch == '3' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Gather news — Regional & Non-Western
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: '--allowed-tools "WebFetch,Bash(gh issue create:*),Bash(gh issue list:*),Bash(curl:*)"'
+          prompt: |
+            You are monitoring the Iran-Israel-US military conflict (Operation Epic Fury, started Feb 28 2026).
+            Your job: find NEW developments and create GitHub issues for human review.
+
+            YOUR ONLY NEWS SOURCES for this batch are REGIONAL & NON-WESTERN outlets:
+            - Al Arabiya (Center, Middle East/Saudi): https://english.alarabiya.net/
+            - Middle East Eye (Lean Left, Middle East/UK-based): https://www.middleeasteye.net/
+            - DW / Deutsche Welle (Center, EU/Germany): https://www.dw.com/en/
+            - NHK World (Center, Asia/Japan): https://www3.nhk.or.jp/nhkworld/
+            - SCMP (Center, Asia/Hong Kong): https://www.scmp.com/
+            - Iran International (Lean Right, Iran/UK-based, Persian diaspora): https://www.iranintl.com/en
+            - IRNA (Right, Iran, STATE MEDIA — label clearly, cross-check claims): https://en.irna.ir/
+
+            Do NOT use web search or any other source not listed above.
+
+            IMPORTANT: IRNA is Iranian state media. Any claims from IRNA must be clearly labeled as "according to Iranian state media" in the body text. Do NOT present IRNA claims as confirmed facts unless independently verified by another source in this batch.
+
+            ## Step 1: Gather existing headlines for dedup
+
+            Fetch published event headlines from the live API:
+            ```
+            curl -s https://opepicfury.info/api/events | jq -r '.[].headline'
+            ```
+            Then check existing GitHub issues:
+            ```
+            gh issue list --repo ${{ github.repository }} --label "pending-review" --state all --limit 100 --json title -q '.[].title'
+            gh issue list --repo ${{ github.repository }} --label "published" --state all --limit 100 --json title -q '.[].title'
+            ```
+            Collect ALL these headlines — you must NOT duplicate any of them.
+
+            ## Step 2: Fetch latest articles
+
+            Fetch the front page / main section from EACH source using WebFetch.
+            Identify new developments SPECIFICALLY about Operation Epic Fury (Iran-Israel-US military conflict).
+            IGNORE any news NOT about Operation Epic Fury.
+            Extract the article's published timestamp.
+
+            These regional sources often provide perspectives not covered by Western media. Pay special attention to:
+            - Casualty reports from Middle Eastern sources
+            - Diplomatic reactions from non-Western governments
+            - Regional impact (airspace closures, refugee movements, economic effects)
+
+            ## Step 3: Create issues for NEW events only
+
+            For each genuinely new development NOT already in existing headlines, create a GitHub issue.
+
+            Category must be one of: strike, retaliation, announcement, casualty, world-reaction, breaking, breaking-important
+
+            For EACH new event:
+            ```
+            gh issue create --repo ${{ github.repository }} \
+              --title "[News] <English headline>" \
+              --label "pending-review" \
+              --label "cat:<category>" \
+              --body "$(cat <<'ISSUE_EOF'
+            ## Candidate Event — Pending Review
+
+            **Category:** `<category>`
+            **Source:** [<news outlet name>](<link to the article>)
+            **Source Bias:** `<center|lean-left|lean-right|right>`
+            **Source Region:** `<us|eu|middle-east|asia|global>`
+            **State Media:** `<yes|no>`
+
+            ### English
+            **<headline>**
+
+            <body — 2-4 sentences, factual. If sourced from IRNA, prefix with "According to Iranian state media, ...">
+
+            ### فارسی
+            **<headline_fa>**
+
+            <body_fa>
+
+            ---
+
+            <details>
+            <summary>Event JSON</summary>
+
+            ```json
+            {
+              "timeET": "<YYYY-MM-DD HH:MM>",
+              "headline": "<English headline>",
+              "body": "<English body>",
+              "category": "<category>",
+              "source": "<news outlet name>",
+              "sourceUrl": "<link to the article>",
+              "sourceRegion": "<us|eu|middle-east|asia|global>",
+              "confidence": "<confirmed|unconfirmed|disputed>",
+              "sources": [{"name": "<outlet>", "url": "<article url>", "region": "<region>"}],
+              "breaking": <true|false>,
+              "headline_fa": "<Farsi headline>",
+              "body_fa": "<Farsi body>"
+            }
+            ```
+
+            </details>
+
+            ISSUE_EOF
+            )"
+            ```
+
+            CRITICAL RULES:
+            - ONLY source: The seven news websites listed above. Do NOT use web search or any other website.
+            - ONLY TOPIC: Operation Epic Fury (Iran-Israel-US military conflict). Ignore ALL other news.
+            - TIMESTAMP: Use the article's published timestamp. Convert to ET (America/New_York). Format: "YYYY-MM-DD HH:MM".
+            - You MUST write Farsi/Persian text as raw UTF-8 characters, NEVER as Unicode escape sequences.
+            - The Event JSON must be valid JSON in ```json fences inside a <details> block.
+            - Provide BOTH English and Farsi translations.
+            - IRNA-only events should have confidence "unconfirmed". If IRNA contradicts other sources, set confidence to "disputed".
+            - If multiple sources cover the same event, list ALL in the sources array.
+            - Set breaking to true only for major developments.
+            - If no new developments found, do nothing and say so.
