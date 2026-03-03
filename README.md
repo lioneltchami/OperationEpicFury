@@ -2,7 +2,7 @@
 
 A real-time news timeline tracking Operation Epic Fury (US-Israel strikes on Iran, starting Feb 28, 2026). The site aggregates news from multiple sources every 3 hours via Claude AI, cross-checks across sources, translates to Farsi, and publishes them after human review.
 
-**Live:** [opepicfury.info](https://opepicfury.info)
+**Live:** [epicfuryops.info](https://epicfuryops.info)
 
 ## Stack
 
@@ -53,7 +53,7 @@ Tweet URLs ──→ GitHub Actions ───────────→ Human c
 | `TELEGRAM_ALLOWED_USERS` | Yes | Comma-separated Telegram user IDs allowed to submit news |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Yes | VAPID public key for Web Push |
 | `VAPID_PRIVATE_KEY` | Yes | VAPID private key for Web Push |
-| `SITE_URL` | No | Site URL (default: `https://opepicfury.info`) |
+| `SITE_URL` | No | Site URL (default: `https://epicfuryops.info`) |
 
 ## Local Setup
 

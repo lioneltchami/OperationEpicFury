@@ -344,7 +344,7 @@
 
 - **Create:** `src/app/api/embed/route.ts`
 - Returns a self-contained HTML snippet with the last 10 events
-- Other sites can embed via `<iframe src="https://opepicfury.info/api/embed">`
+- Other sites can embed via `<iframe src="https://epicfuryops.info/api/embed">`
 - Minimal styling, dark theme, links back to the full site
 - Add CORS headers for cross-origin embedding
 

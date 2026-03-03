@@ -1,7 +1,8 @@
 import { getPublishedEventsPaginated } from "@/lib/kv";
 import type { TimelineEvent } from "@/data/timeline";
 
-const SITE_URL = "https://opepicfury.info";
+import { SITE_URL } from "@/lib/utils";
+
 const FEED_SIZE = 50;
 
 function escapeXml(s: string): string {

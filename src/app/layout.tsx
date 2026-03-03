@@ -24,13 +24,14 @@ const vazirmatn = Vazirmatn({
   display: "swap",
 });
 
-const siteUrl = "https://opepicfury.info";
+import { SITE_URL } from "@/lib/utils";
+
 const title = "Operation Epic Fury | Timeline";
 const description =
   "A minute-by-minute timeline of Operation Epic Fury — the US-Israel strikes on Iran.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
   title,
   description,
   robots: "index, follow",
@@ -52,8 +53,8 @@ export const metadata: Metadata = {
     type: "website",
     title,
     description,
-    siteName: "opepicfury.info",
-    url: siteUrl,
+    siteName: new URL(SITE_URL).host,
+    url: SITE_URL,
     images: [{ url: "/og-image.png", width: 1200, height: 630, alt: title }],
   },
   twitter: {

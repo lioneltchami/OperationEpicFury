@@ -3,6 +3,7 @@
 import React from "react";
 import { m } from "framer-motion";
 import { useLocale } from "@/i18n/LocaleContext";
+import { SITE_URL } from "@/lib/utils";
 
 const sources = [
   { name: "Al Jazeera", url: "https://www.aljazeera.com/news/liveblog/2026/2/28/live-israel-launches-attacks-on-iran-multiple-explosions-heard-in-tehran" },
@@ -98,7 +99,7 @@ export const Footer = () => {
             </a>
             <button
               onClick={() => {
-                const code = '<iframe src="https://opepicfury.info/api/embed" width="480" height="600" frameborder="0"></iframe>';
+                const code = `<iframe src="${SITE_URL}/api/embed" width="480" height="600" frameborder="0"></iframe>`;
                 navigator.clipboard.writeText(code);
               }}
               className={`text-zinc-500 hover:text-white transition-colors ${monoClass}`}

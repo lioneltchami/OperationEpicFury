@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 import { getEventBySlug } from "@/lib/kv";
+import { SITE_URL } from "@/lib/utils";
 
 export const runtime = "edge";
 
@@ -108,7 +109,7 @@ export async function GET(req: NextRequest) {
               Operation Epic Fury
             </div>
             <div style={{ fontSize: 14, color: "#71717a" }}>
-              opepicfury.info
+              {new URL(SITE_URL).host}
             </div>
           </div>
           <div style={{ fontSize: 14, color: "#71717a" }}>

@@ -1,7 +1,9 @@
 import { NextRequest } from "next/server";
 import { getPublishedEventsPaginated } from "@/lib/kv";
 
-const SITE = "https://opepicfury.info";
+import { SITE_URL } from "@/lib/utils";
+
+
 
 export async function GET(req: NextRequest) {
   const params = req.nextUrl.searchParams;
@@ -29,7 +31,7 @@ export async function GET(req: NextRequest) {
         <span style="color:${accent};font-family:monospace;font-size:12px;font-weight:700">${escapeHtml(e.timeET.split(" ")[1] ?? "")}</span>
         <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:${muted}">${escapeHtml(e.category)}</span>
       </div>
-      <a href="${SITE}/en/events/${e.slug ?? ""}" target="_blank" rel="noopener" style="color:${text};text-decoration:none;font-size:14px;font-weight:600;line-height:1.4">${escapeHtml(e.headline)}</a>
+      <a href="${SITE_URL}/en/events/${e.slug ?? ""}" target="_blank" rel="noopener" style="color:${text};text-decoration:none;font-size:14px;font-weight:600;line-height:1.4">${escapeHtml(e.headline)}</a>
       <div style="margin-top:4px;font-size:11px;color:${muted}">${escapeHtml(e.source)}</div>
     </div>`,
     )
@@ -49,12 +51,12 @@ a:hover{text-decoration:underline!important}
 <body>
 <div style="border:1px solid ${border};border-radius:12px;overflow:hidden;max-width:480px">
   <div style="padding:12px 16px;border-bottom:1px solid ${border};display:flex;align-items:center;justify-content:space-between">
-    <a href="${SITE}" target="_blank" rel="noopener" style="color:${accent};font-size:13px;font-weight:800;text-decoration:none;letter-spacing:0.02em">OPERATION EPIC FURY</a>
+    <a href="${SITE_URL}" target="_blank" rel="noopener" style="color:${accent};font-size:13px;font-weight:800;text-decoration:none;letter-spacing:0.02em">OPERATION EPIC FURY</a>
     <span style="font-size:10px;color:${muted}">LIVE</span>
   </div>
   ${eventsHtml}
   <div style="padding:10px 16px;text-align:center">
-    <a href="${SITE}" target="_blank" rel="noopener" style="color:${muted};font-size:11px;text-decoration:none">View full timeline →</a>
+    <a href="${SITE_URL}" target="_blank" rel="noopener" style="color:${muted};font-size:11px;text-decoration:none">View full timeline →</a>
   </div>
 </div>
 </body>

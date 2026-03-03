@@ -3,6 +3,7 @@ import crypto from "crypto";
 import type { TimelineEvent } from "@/data/timeline";
 import { getAllSubscriptions } from "@/lib/push";
 import { getRedis } from "@/lib/redis";
+import { SITE_URL } from "@/lib/utils";
 
 const PUSH_KEY = "push:subscriptions";
 
@@ -16,7 +17,8 @@ function ensureVapid() {
     console.warn("[push] VAPID keys not configured, skipping notifications");
     return;
   }
-  webpush.setVapidDetails("mailto:admin@opepicfury.info", publicKey, privateKey);
+  const host = new URL(SITE_URL).host;
+  webpush.setVapidDetails(`mailto:admin@${host}`, publicKey, privateKey);
   vapidInitialized = true;
 }
 

@@ -51,7 +51,7 @@ jobs:
 
             Fetch published event headlines from the live API:
             ```
-            curl -s https://opepicfury.info/api/events | jq -r '.[].headline'
+            curl -s https://epicfuryops.info/api/events | jq -r '.[].headline'
             ```
             Then check existing GitHub issues:
             ```
@@ -188,7 +188,7 @@ jobs:
 
             Fetch published event headlines from the live API:
             ```
-            curl -s https://opepicfury.info/api/events | jq -r '.[].headline'
+            curl -s https://epicfuryops.info/api/events | jq -r '.[].headline'
             ```
             Then check existing GitHub issues:
             ```
@@ -323,7 +323,7 @@ jobs:
 
             Fetch published event headlines from the live API:
             ```
-            curl -s https://opepicfury.info/api/events | jq -r '.[].headline'
+            curl -s https://epicfuryops.info/api/events | jq -r '.[].headline'
             ```
             Then check existing GitHub issues:
             ```

@@ -8,10 +8,9 @@ import { LocalTime } from "@/components/ui/LocalTime";
 import { MediaGallery } from "@/components/ui/MediaGallery";
 import { ShareButtons } from "@/components/ui/ShareButtons";
 import { SourcePerspectives } from "@/components/ui/SourcePerspectives";
+import { SITE_URL } from "@/lib/utils";
 
 const EventMap = dynamic(() => import("@/components/ui/EventMap"), { ssr: false });
-
-const SITE_URL = "https://opepicfury.info";
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
@@ -51,7 +50,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description: truncatedDesc,
       type: "article",
-      siteName: "opepicfury.info",
+      siteName: new URL(SITE_URL).host,
       url: `${SITE_URL}/${locale}/events/${slug}`,
       images: [{ url: `${SITE_URL}/api/og?slug=${slug}`, width: 1200, height: 630, alt: title }],
     },
