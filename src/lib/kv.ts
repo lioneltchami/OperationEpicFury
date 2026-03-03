@@ -1,11 +1,54 @@
 import { getRedis } from "@/lib/redis";
 import type { TimelineEvent, MediaItem } from "@/data/timeline";
 
-const KEY = "timeline:events";
+// New structure:
+//   HASH  "events:data"          — id → JSON(event)
+//   ZSET  "events:index"         — score=timeET as sortable string, member=id
+//   HASH  "events:slugs"         — slug → id
+// Legacy (read-only, kept for migration):
+//   STRING "timeline:events"     — JSON array of all events
+
+const HASH_KEY = "events:data";
+const INDEX_KEY = "events:index";
+const SLUG_KEY = "events:slugs";
+const LEGACY_KEY = "timeline:events";
+
+/** Convert timeET string to a numeric score for sorted set ordering. */
+function timeScore(timeET: string | undefined): number {
+  if (!timeET) return 0;
+  // "YYYY-MM-DD HH:MM" → remove non-digits → number
+  // e.g. "2026-03-01 14:30" → 202603011430
+  return parseInt(timeET.replace(/\D/g, ""), 10) || 0;
+}
+
+// ─── Read operations ───
 
 export async function getAllEvents(): Promise<TimelineEvent[]> {
   const redis = getRedis();
-  const raw = await redis.get(KEY);
+
+  // Check if new structure exists
+  const count = await redis.hlen(HASH_KEY);
+  if (count > 0) {
+    // Use sorted set for ordering, hash for data
+    const ids = await redis.zrange(INDEX_KEY, 0, -1);
+    if (ids.length === 0) return [];
+    const pipeline = redis.pipeline();
+    for (const id of ids) {
+      pipeline.hget(HASH_KEY, id);
+    }
+    const results = await pipeline.exec();
+    const events: TimelineEvent[] = [];
+    for (const result of results ?? []) {
+      const [err, raw] = result;
+      if (!err && raw) {
+        events.push(JSON.parse(raw as string) as TimelineEvent);
+      }
+    }
+    return events;
+  }
+
+  // Fallback to legacy single-key format
+  const raw = await redis.get(LEGACY_KEY);
   if (!raw) return [];
   const events = JSON.parse(raw) as TimelineEvent[];
   events.sort((a, b) => (a.timeET ?? "").localeCompare(b.timeET ?? ""));
@@ -33,13 +76,39 @@ export async function getDraftEvents(): Promise<TimelineEvent[]> {
 export async function getEventById(
   id: string,
 ): Promise<TimelineEvent | undefined> {
-  const events = await getAllEvents();
+  const redis = getRedis();
+
+  // Try new structure first (O(1))
+  const raw = await redis.hget(HASH_KEY, id);
+  if (raw) return JSON.parse(raw) as TimelineEvent;
+
+  // Fallback to legacy
+  const legacyRaw = await redis.get(LEGACY_KEY);
+  if (!legacyRaw) return undefined;
+  const events = JSON.parse(legacyRaw) as TimelineEvent[];
   return events.find((e) => e.id === id);
 }
 
 export async function getEventBySlug(
   slug: string,
 ): Promise<TimelineEvent | undefined> {
+  const redis = getRedis();
+
+  // Try slug index first (O(1))
+  const id = await redis.hget(SLUG_KEY, slug);
+  if (id) {
+    const raw = await redis.hget(HASH_KEY, id);
+    if (raw) {
+      const event = JSON.parse(raw) as TimelineEvent;
+      // Only return published events
+      if (event.timeET && (!event.status || event.status === "published")) {
+        return event;
+      }
+    }
+    return undefined;
+  }
+
+  // Fallback to legacy
   const events = await getPublishedEvents();
   return events.find((e) => e.slug === slug);
 }
@@ -56,37 +125,163 @@ export async function getAdjacentEvents(
   };
 }
 
+// ─── Write operations ───
+
 export async function setAllEvents(events: TimelineEvent[]): Promise<void> {
   const redis = getRedis();
-  await redis.set(KEY, JSON.stringify(events));
+  const pipeline = redis.pipeline();
+
+  // Clear existing new-structure keys
+  pipeline.del(HASH_KEY, INDEX_KEY, SLUG_KEY);
+
+  // Write each event to hash + sorted set + slug index
+  for (const event of events) {
+    pipeline.hset(HASH_KEY, event.id, JSON.stringify(event));
+    pipeline.zadd(INDEX_KEY, timeScore(event.timeET).toString(), event.id);
+    if (event.slug) {
+      pipeline.hset(SLUG_KEY, event.slug, event.id);
+    }
+  }
+
+  // Also update legacy key for backward compatibility during rollout
+  events.sort((a, b) => (a.timeET ?? "").localeCompare(b.timeET ?? ""));
+  pipeline.set(LEGACY_KEY, JSON.stringify(events));
+
+  await pipeline.exec();
 }
 
 export async function addEvent(event: TimelineEvent): Promise<void> {
-  const events = await getAllEvents();
-  events.push(event);
-  events.sort((a, b) => (a.timeET ?? "").localeCompare(b.timeET ?? ""));
-  await setAllEvents(events);
+  const redis = getRedis();
+  const pipeline = redis.pipeline();
+
+  // Atomic write to hash + sorted set + slug index
+  pipeline.hset(HASH_KEY, event.id, JSON.stringify(event));
+  pipeline.zadd(INDEX_KEY, timeScore(event.timeET).toString(), event.id);
+  if (event.slug) {
+    pipeline.hset(SLUG_KEY, event.slug, event.id);
+  }
+
+  await pipeline.exec();
 }
 
 export async function updateEvent(
   id: string,
   data: Partial<TimelineEvent>,
 ): Promise<TimelineEvent | null> {
-  const events = await getAllEvents();
-  const idx = events.findIndex((e) => e.id === id);
-  if (idx === -1) return null;
-  events[idx] = { ...events[idx], ...data, id };
-  await setAllEvents(events);
-  return events[idx];
+  const redis = getRedis();
+
+  const raw = await redis.hget(HASH_KEY, id);
+  if (!raw) {
+    // Fallback: try legacy, then migrate
+    const legacyRaw = await redis.get(LEGACY_KEY);
+    if (!legacyRaw) return null;
+    const events = JSON.parse(legacyRaw) as TimelineEvent[];
+    const idx = events.findIndex((e) => e.id === id);
+    if (idx === -1) return null;
+    events[idx] = { ...events[idx], ...data, id };
+    await setAllEvents(events);
+    return events[idx];
+  }
+
+  const existing = JSON.parse(raw) as TimelineEvent;
+  const oldSlug = existing.slug;
+  const updated = { ...existing, ...data, id };
+
+  const pipeline = redis.pipeline();
+  pipeline.hset(HASH_KEY, id, JSON.stringify(updated));
+
+  // Update sorted set score if timeET changed
+  if (data.timeET) {
+    pipeline.zadd(INDEX_KEY, timeScore(updated.timeET).toString(), id);
+  }
+
+  // Update slug index if slug changed
+  if (data.slug && data.slug !== oldSlug) {
+    if (oldSlug) pipeline.hdel(SLUG_KEY, oldSlug);
+    pipeline.hset(SLUG_KEY, data.slug, id);
+  }
+
+  await pipeline.exec();
+  return updated;
 }
 
 export async function deleteEvent(id: string): Promise<boolean> {
-  const events = await getAllEvents();
-  const filtered = events.filter((e) => e.id !== id);
-  if (filtered.length === events.length) return false;
-  await setAllEvents(filtered);
+  const redis = getRedis();
+
+  const raw = await redis.hget(HASH_KEY, id);
+  if (!raw) {
+    // Fallback: try legacy
+    const legacyRaw = await redis.get(LEGACY_KEY);
+    if (!legacyRaw) return false;
+    const events = JSON.parse(legacyRaw) as TimelineEvent[];
+    const filtered = events.filter((e) => e.id !== id);
+    if (filtered.length === events.length) return false;
+    await setAllEvents(filtered);
+    return true;
+  }
+
+  const event = JSON.parse(raw) as TimelineEvent;
+  const pipeline = redis.pipeline();
+  pipeline.hdel(HASH_KEY, id);
+  pipeline.zrem(INDEX_KEY, id);
+  if (event.slug) {
+    pipeline.hdel(SLUG_KEY, event.slug);
+  }
+  await pipeline.exec();
   return true;
 }
+
+// ─── Migration ───
+
+/**
+ * Migrate from legacy single-key format to new hash + sorted set structure.
+ * Safe to run multiple times (idempotent).
+ * Returns the number of events migrated.
+ */
+export async function migrateToNewStructure(): Promise<{
+  migrated: number;
+  alreadyMigrated: boolean;
+}> {
+  const redis = getRedis();
+
+  // Check if already migrated
+  const newCount = await redis.hlen(HASH_KEY);
+  if (newCount > 0) {
+    return { migrated: newCount, alreadyMigrated: true };
+  }
+
+  // Read from legacy key
+  const raw = await redis.get(LEGACY_KEY);
+  if (!raw) return { migrated: 0, alreadyMigrated: false };
+
+  const events = JSON.parse(raw) as TimelineEvent[];
+  if (events.length === 0) return { migrated: 0, alreadyMigrated: false };
+
+  // Write to new structure
+  const pipeline = redis.pipeline();
+  for (const event of events) {
+    pipeline.hset(HASH_KEY, event.id, JSON.stringify(event));
+    pipeline.zadd(INDEX_KEY, timeScore(event.timeET).toString(), event.id);
+    if (event.slug) {
+      pipeline.hset(SLUG_KEY, event.slug, event.id);
+    }
+  }
+  await pipeline.exec();
+
+  // Verify
+  const verifyCount = await redis.hlen(HASH_KEY);
+  if (verifyCount !== events.length) {
+    // Rollback
+    await redis.del(HASH_KEY, INDEX_KEY, SLUG_KEY);
+    throw new Error(
+      `Migration verification failed: expected ${events.length}, got ${verifyCount}`,
+    );
+  }
+
+  return { migrated: events.length, alreadyMigrated: false };
+}
+
+// ─── Media buffer (unchanged) ───
 
 const MEDIA_BUFFER_PREFIX = "media_buffer:";
 
