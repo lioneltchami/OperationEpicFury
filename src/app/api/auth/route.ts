@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { computeToken } from "@/lib/auth";
+import { generateSessionToken, createSession, destroySession, COOKIE_NAME, SESSION_TTL } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { cookies } from "next/headers";
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const WINDOW_SECONDS = 15 * 60; // 15 minutes
@@ -38,21 +39,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid password" }, { status: 401 });
   }
 
-  const token = computeToken(password);
+  // Generate random session token and store in Redis
+  const token = generateSessionToken();
+  await createSession(token);
+
   const res = NextResponse.json({ ok: true });
-  res.cookies.set("admin_token", token, {
+  res.cookies.set(COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24, // 1 day
+    maxAge: SESSION_TTL,
   });
   return res;
 }
 
 export async function DELETE() {
+  // Destroy the session in Redis before clearing the cookie
+  const cookieStore = await cookies();
+  const token = cookieStore.get(COOKIE_NAME)?.value;
+  if (token) {
+    await destroySession(token);
+  }
+
   const res = NextResponse.json({ ok: true });
-  res.cookies.set("admin_token", "", {
+  res.cookies.set(COOKIE_NAME, "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
