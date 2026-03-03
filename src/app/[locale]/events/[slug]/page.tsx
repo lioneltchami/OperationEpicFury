@@ -6,6 +6,7 @@ import { getDictionary } from "@/i18n";
 import { LocalTime } from "@/components/ui/LocalTime";
 import { MediaGallery } from "@/components/ui/MediaGallery";
 import { ShareButtons } from "@/components/ui/ShareButtons";
+import { SourcePerspectives } from "@/components/ui/SourcePerspectives";
 
 const SITE_URL = "https://opepicfury.info";
 
@@ -241,6 +242,11 @@ export default async function EventPage({ params }: Props) {
               title={headline}
             />
           </div>
+
+          {/* All perspectives (multi-source events) */}
+          {event.sources && event.sources.length >= 2 && (
+            <SourcePerspectives sources={event.sources} />
+          )}
 
           {/* Prev / Next navigation */}
           <nav className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-zinc-800/60 pt-8">

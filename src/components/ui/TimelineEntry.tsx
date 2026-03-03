@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { m } from "framer-motion";
 import type { TimelineEvent, ConfidenceLevel } from "@/data/timeline";
+import { findSource } from "@/data/sources";
 import { cn } from "@/lib/utils";
 import { LocalTime } from "@/components/ui/LocalTime";
 import { useLocale } from "@/i18n/LocaleContext";
@@ -27,12 +28,22 @@ const confidenceConfig: Record<ConfidenceLevel, { icon: string; label: string; c
   disputed: { icon: "⚠", label: "Disputed", className: "text-orange-400 bg-orange-500/15 border-orange-500/30" },
 };
 
+const biasColors: Record<string, { dot: string; label: string }> = {
+  left: { dot: "bg-blue-400", label: "Left" },
+  "lean-left": { dot: "bg-blue-400", label: "Lean Left" },
+  center: { dot: "bg-zinc-400", label: "Center" },
+  "lean-right": { dot: "bg-red-400", label: "Lean Right" },
+  right: { dot: "bg-red-400", label: "Right" },
+};
+
 export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
   const { dict, locale, isRtl } = useLocale();
   const [showShare, setShowShare] = useState(false);
   const cat = categoryConfig[event.category];
   const catLabel = dict.categories[event.category as keyof typeof dict.categories];
   const conf = confidenceConfig[event.confidence ?? "confirmed"];
+  const knownSource = findSource(event.source);
+  const bias = knownSource ? biasColors[knownSource.bias] : null;
 
   const isFa = locale === "fa";
   const headline = isFa && event.headline_fa ? event.headline_fa : event.headline;
@@ -137,12 +148,18 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
-              "text-xs transition-colors",
+              "text-xs transition-colors flex items-center gap-1.5",
               event.category === "breaking-important"
                 ? "text-red-300/70 hover:text-red-200"
                 : "text-red-400/70 hover:text-red-400"
             )}
           >
+            {bias && (
+              <span
+                className={cn("inline-block w-2 h-2 rounded-full shrink-0", bias.dot)}
+                title={bias.label}
+              />
+            )}
             <span>{dict.common.source}:</span>{" "}
             <span className="font-mono">{event.source}</span> {isRtl ? "\u2190" : "\u2192"}
           </a>

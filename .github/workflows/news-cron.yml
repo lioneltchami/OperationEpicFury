@@ -136,6 +136,14 @@ jobs:
             - Set breaking to true only for major developments.
             - If no new developments found, do nothing and say so.
 
+            ## Cross-checking rules:
+            - If 3+ sources from different bias categories report the same event → "confirmed"
+            - If only sources from one bias category report it → "unconfirmed"
+            - If sources contradict each other on key facts → "disputed"
+            - Always note which sources agree and which disagree in the issue body
+            - NEVER trust a single source for casualty numbers — require 2+ sources
+            - State media (IRNA) should be labeled as such and cross-checked against independent sources
+
   # ── Batch 2: US Left + US/UK Right ──
   batch-us-left-right:
     if: ${{ github.event_name == 'schedule' || github.event.inputs.batch == 'all' || github.event.inputs.batch == '2' }}
@@ -266,6 +274,14 @@ jobs:
             - If multiple sources (especially from different bias categories) cover the same event, list ALL of them in the sources array and set confidence to "confirmed".
             - Set breaking to true only for major developments.
             - If no new developments found, do nothing and say so.
+
+            ## Cross-checking rules:
+            - If 3+ sources from different bias categories report the same event → "confirmed"
+            - If only sources from one bias category report it → "unconfirmed"
+            - If sources contradict each other on key facts → "disputed"
+            - Always note which sources agree and which disagree in the issue body
+            - NEVER trust a single source for casualty numbers — require 2+ sources
+            - Left-leaning and right-leaning sources confirming the same facts is the strongest signal of accuracy
 
   # ── Batch 3: Regional & Non-Western ──
   batch-regional:
@@ -398,3 +414,12 @@ jobs:
             - If multiple sources cover the same event, list ALL in the sources array.
             - Set breaking to true only for major developments.
             - If no new developments found, do nothing and say so.
+
+            ## Cross-checking rules:
+            - If 3+ sources from different bias categories report the same event → "confirmed"
+            - If only sources from one bias category report it → "unconfirmed"
+            - If sources contradict each other on key facts → "disputed"
+            - Always note which sources agree and which disagree in the issue body
+            - NEVER trust a single source for casualty numbers — require 2+ sources
+            - State media (IRNA) should be labeled as such and cross-checked against independent sources
+            - IRNA claims that cannot be verified by any other source in this batch should be flagged as "unconfirmed" with a note

@@ -1,0 +1,128 @@
+name: Tweet News Processing
+
+on:
+  repository_dispatch:
+    types: [tweet_news]
+
+jobs:
+  process-tweet:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Process tweet with Claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: '--allowed-tools "Bash(curl:*)"'
+          prompt: |
+            You received a tweet to process into a timeline event for the Operation Epic Fury timeline (Iran-Israel-US military conflict, started February 28 2026).
+
+            ## Input
+
+            Text: ${{ github.event.client_payload.text }}
+            Timestamp (ET): ${{ github.event.client_payload.timestamp_et }}
+            Source URL: ${{ github.event.client_payload.source_url }}
+            Media JSON: ${{ github.event.client_payload.media }}
+            Chat ID: ${{ github.event.client_payload.chat_id }}
+            Message ID: ${{ github.event.client_payload.message_id }}
+
+            ## Step 1: Check for duplicates
+
+            Fetch existing events to check:
+            ```
+            curl -s "${{ vars.SITE_URL }}/api/events" | jq -r '.[] | "\(.timeET) | \(.headline)"'
+            ```
+
+            Only flag as duplicate if exact same incident at same time. Be lenient.
+
+            If duplicate, send error callback:
+            ```
+            curl -sf -X POST "${{ vars.SITE_URL }}/api/telegram/callback" \
+              -H "Authorization: Bearer ${{ secrets.PUBLISH_SECRET }}" \
+              -H "Content-Type: application/json" \
+              -d '{"chat_id": ${{ github.event.client_payload.chat_id }}, "message_id": ${{ github.event.client_payload.message_id }}, "status": "error", "error": "Duplicate of: [<timeET>] <matching headline>"}'
+            ```
+            Then stop.
+
+            ## Step 2: Use the provided timestamp
+
+            Use the "Timestamp (ET)" value directly as timeET. It is already in "YYYY-MM-DD HH:MM" format in America/New_York timezone.
+
+            ## Step 3: Extract structured data
+
+            The text starts with "[Tweet by Name (@handle)]" followed by the tweet content.
+
+            - **headline**: English, concise, news-style summary of the tweet
+            - **body**: English, 2-4 sentences, factual, AP news style
+            - **timeET**: From Step 2
+            - **category**: One of: strike, retaliation, announcement, casualty, world-reaction, breaking, breaking-important
+            - **source**: The tweet author name and handle (e.g. "John Smith (@jsmith)")
+            - **sourceUrl**: Use the "Source URL" from Input
+            - **sourceRegion**: Determine the region based on the tweet author: "us", "eu", "middle-east", "asia", or "other" if unclear
+            - **confidence**: Always "unconfirmed" for single tweets
+            - **sources**: Array with one entry: [{"name": "<source>", "url": "<sourceUrl>", "region": "<sourceRegion>"}]
+            - **breaking**: true only for major developments
+
+            ## Step 4: Translate to Farsi
+
+            Translate headline and body to natural, fluent Persian in formal news style.
+            Use common Persian forms for proper nouns.
+            CRITICAL: Write Farsi as raw UTF-8 characters, NEVER as \u escape sequences.
+
+            ## Step 5: Create draft event
+
+            ```
+            curl -sf -X POST "${{ vars.SITE_URL }}/api/events/publish" \
+              -H "Authorization: Bearer ${{ secrets.PUBLISH_SECRET }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "timeET": "<YYYY-MM-DD HH:MM>",
+                "headline": "<English headline>",
+                "body": "<English body>",
+                "category": "<category>",
+                "source": "<source name>",
+                "sourceUrl": "<source url>",
+                "sourceRegion": "<us|eu|middle-east|asia|other>",
+                "confidence": "unconfirmed",
+                "sources": [{"name": "<source>", "url": "<sourceUrl>", "region": "<region>"}],
+                "breaking": <true|false>,
+                "headline_fa": "<Farsi headline>",
+                "body_fa": "<Farsi body>",
+                "media": <Media JSON array or omit if empty>,
+                "status": "draft"
+              }'
+            ```
+
+            Save the response — it contains the event `id`.
+
+            ## Step 6: Send callback
+
+            On success:
+            ```
+            curl -sf -X POST "${{ vars.SITE_URL }}/api/telegram/callback" \
+              -H "Authorization: Bearer ${{ secrets.PUBLISH_SECRET }}" \
+              -H "Content-Type: application/json" \
+              -d '{"chat_id": ${{ github.event.client_payload.chat_id }}, "message_id": ${{ github.event.client_payload.message_id }}, "headline": "<the headline>", "event_id": "<the id>", "status": "success"}'
+            ```
+
+            On failure:
+            ```
+            curl -sf -X POST "${{ vars.SITE_URL }}/api/telegram/callback" \
+              -H "Authorization: Bearer ${{ secrets.PUBLISH_SECRET }}" \
+              -H "Content-Type: application/json" \
+              -d '{"chat_id": ${{ github.event.client_payload.chat_id }}, "message_id": ${{ github.event.client_payload.message_id }}, "status": "error", "error": "<what went wrong>"}'
+            ```
+
+            CRITICAL RULES:
+            - Do NOT use web search. Only use the input provided.
+            - All Farsi text must be raw UTF-8, NEVER \u escape sequences.
+            - All JSON must be valid. Escape double quotes inside strings.
+            - STRICT DATE: Timeline covers events from February 28, 2026 onward.
+            - If Media JSON is provided, pass it through to the publish API as-is.

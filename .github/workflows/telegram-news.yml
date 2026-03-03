@@ -1,0 +1,149 @@
+name: Telegram News Processing
+
+on:
+  repository_dispatch:
+    types: [telegram_news]
+
+jobs:
+  process-news:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Process news with Claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: '--allowed-tools "WebFetch,Bash(curl:*)"'
+          prompt: |
+            You received a news message from Telegram. Process it into a timeline event for the Operation Epic Fury timeline (Iran-Israel-US military conflict, started February 28 2026).
+
+            ## Input
+
+            Text: ${{ github.event.client_payload.text }}
+            URLs: ${{ github.event.client_payload.urls }}
+            Forward origin: ${{ github.event.client_payload.forward_origin }}
+            Forward message link: ${{ github.event.client_payload.forward_message_link }}
+            Timestamp (ET): ${{ github.event.client_payload.timestamp_et }}
+            Media JSON: ${{ github.event.client_payload.media }}
+            Media group ID: ${{ github.event.client_payload.media_group_id }}
+            Chat ID: ${{ github.event.client_payload.chat_id }}
+            Message ID: ${{ github.event.client_payload.message_id }}
+
+            ## Step 1: Gather content
+
+            Use the provided text and forward origin as the source material.
+            If URLs are provided, fetch them with WebFetch or curl to get more detail.
+            If the text starts with "[Tweet by ...]", this is a tweet. Use the author as the source name and the URL as sourceUrl. The tweet text is already extracted — no need to fetch the URL.
+            Do NOT search the web. Do NOT use any source other than what was provided in the input above.
+
+            ## Step 2: Check for duplicates
+
+            Fetch existing events (headline + timestamp) to check for duplicates:
+            ```
+            curl -s "${{ vars.SITE_URL }}/api/events" | jq -r '.[] | "\(.timeET) | \(.headline)"'
+            ```
+
+            An event is ONLY a duplicate if it describes the **exact same incident at the same time**. Be lenient — when in doubt, it is NOT a duplicate. Specifically:
+            - Same person making the same statement on a DIFFERENT date → NOT a duplicate (it's a repeated/reinforced statement)
+            - Same topic but new details, developments, or a different angle → NOT a duplicate
+            - Same general subject (e.g. "strikes on Tehran") but different specific events → NOT a duplicate
+            - Only flag as duplicate if the headline, time, and specific facts are essentially identical
+
+            If it IS a genuine duplicate, report via callback AND include the matching event's headline and time so the user knows what it matched:
+            ```
+            curl -sf -X POST "${{ vars.SITE_URL }}/api/telegram/callback" \
+              -H "Authorization: Bearer ${{ secrets.PUBLISH_SECRET }}" \
+              -H "Content-Type: application/json" \
+              -d '{"chat_id": ${{ github.event.client_payload.chat_id }}, "message_id": ${{ github.event.client_payload.message_id }}, "status": "error", "error": "Duplicate of: [<timeET>] <matching headline>"}'
+            ```
+            Then stop.
+
+            ## Step 3: Get the timestamp
+
+            The "Timestamp (ET)" field above contains the pre-computed timestamp from the forwarded Telegram message, already converted to America/New_York timezone in "YYYY-MM-DD HH:MM" format.
+
+            Use this value directly as timeET. Do NOT search Telegram channels for timestamps. Do NOT leave timeET empty — the timestamp is already provided.
+
+            ## Step 4: Extract structured data
+
+            From the content, determine:
+            - **headline**: English, concise, news-style
+            - **body**: English, 2-4 sentences, factual, AP news style
+            - **timeET**: From Step 3 above
+            - **category**: One of: strike, retaliation, announcement, casualty, world-reaction, breaking, breaking-important
+            - **source**: The Telegram channel name or original source mentioned in the forwarded message
+            - **sourceUrl**: Use "Forward message link" if provided (this is the direct link to the Telegram post). Otherwise use the URL from the input.
+            - **sourceRegion**: Determine the region of the source: "us", "eu", "middle-east", "asia", or "other". For Telegram channels, use "other" if unclear.
+            - **confidence**: Always "unconfirmed" for single-source Telegram messages
+            - **sources**: Array with one entry: [{"name": "<source>", "url": "<sourceUrl>", "region": "<sourceRegion>"}]
+            - **breaking**: true only for major developments
+
+            ## Step 5: Translate to Farsi
+
+            Translate headline and body to Persian/Farsi:
+            - Write natural, fluent Persian in formal news style
+            - Use common Persian forms for proper nouns (ایران, آمریکا, اسرائیل)
+
+            CRITICAL: Write Farsi as raw UTF-8 characters, NEVER as \u escape sequences.
+
+            ## Step 6: Create draft event
+
+            POST the event to the API. Include the media and media_group_id fields from the Input section if they are present (non-empty). If "Media JSON" is provided, include it as the `media` field (it is already a JSON array). If "Media group ID" is provided, include it as `media_group_id`.
+
+            ```
+            curl -sf -X POST "${{ vars.SITE_URL }}/api/events/publish" \
+              -H "Authorization: Bearer ${{ secrets.PUBLISH_SECRET }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "timeET": "<YYYY-MM-DD HH:MM>",
+                "headline": "<English headline>",
+                "body": "<English body>",
+                "category": "<category>",
+                "source": "<source name>",
+                "sourceUrl": "<source url>",
+                "sourceRegion": "<us|eu|middle-east|asia|other>",
+                "confidence": "unconfirmed",
+                "sources": [{"name": "<source name>", "url": "<source url>", "region": "<us|eu|middle-east|asia|other>"}],
+                "breaking": <true|false>,
+                "headline_fa": "<Farsi headline>",
+                "body_fa": "<Farsi body>",
+                "media": <Media JSON array or omit if empty>,
+                "media_group_id": "<media_group_id or omit if empty>",
+                "status": "draft"
+              }'
+            ```
+
+            Save the response — it contains the event `id`.
+
+            ## Step 7: Send callback notification
+
+            On success, notify the user:
+            ```
+            curl -sf -X POST "${{ vars.SITE_URL }}/api/telegram/callback" \
+              -H "Authorization: Bearer ${{ secrets.PUBLISH_SECRET }}" \
+              -H "Content-Type: application/json" \
+              -d '{"chat_id": ${{ github.event.client_payload.chat_id }}, "message_id": ${{ github.event.client_payload.message_id }}, "headline": "<the headline>", "event_id": "<the id>", "status": "success"}'
+            ```
+
+            On failure at any step, send an error callback instead:
+            ```
+            curl -sf -X POST "${{ vars.SITE_URL }}/api/telegram/callback" \
+              -H "Authorization: Bearer ${{ secrets.PUBLISH_SECRET }}" \
+              -H "Content-Type: application/json" \
+              -d '{"chat_id": ${{ github.event.client_payload.chat_id }}, "message_id": ${{ github.event.client_payload.message_id }}, "status": "error", "error": "<what went wrong>"}'
+            ```
+
+            CRITICAL RULES:
+            - Do NOT use web search. Do NOT use any source beyond the input provided.
+            - Use the pre-computed "Timestamp (ET)" from the Input directly as timeET. NEVER leave timeET empty.
+            - All Farsi text must be raw UTF-8 characters, NEVER \u escape sequences.
+            - All JSON must be valid. Escape double quotes inside strings.
+            - STRICT DATE: This timeline covers events from February 28, 2026 onward. Reject anything before that date.
+            - If Media JSON is provided, pass it through to the publish API as-is.
