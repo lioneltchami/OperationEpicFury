@@ -138,7 +138,7 @@ export default async function EventPage({ params }: Props) {
               </svg>
               {(dict.common as Record<string, string>).backToTimeline}
             </a>
-            <span className="text-[11px] text-zinc-700 font-mono tracking-wider uppercase">
+            <span className="text-[11px] text-zinc-500 font-mono tracking-wider uppercase">
               {isFa ? "عملیات خشم حماسی" : "Operation Epic Fury"}
             </span>
           </div>
@@ -190,7 +190,7 @@ export default async function EventPage({ params }: Props) {
           {/* Source */}
           <div className="flex items-center justify-between border-t border-zinc-800/60 pt-6 mb-10">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-zinc-600">{dict.common.source}:</span>
+              <span className="text-xs text-zinc-500">{dict.common.source}:</span>
               <a
                 href={event.sourceUrl}
                 target="_blank"
@@ -213,13 +213,13 @@ export default async function EventPage({ params }: Props) {
                 href={`/${locale}/events/${adjacent.prev.slug}`}
                 className="group flex flex-col gap-1.5 p-4 rounded-xl border border-zinc-800/60 bg-zinc-950/50 hover:border-zinc-700 hover:bg-zinc-900/50 transition-all"
               >
-                <span className="text-[11px] text-zinc-600 uppercase tracking-wider">
+                <span className="text-[11px] text-zinc-500 uppercase tracking-wider">
                   {(dict.common as Record<string, string>).previous}
                 </span>
                 <span className="text-sm text-zinc-400 group-hover:text-white transition-colors line-clamp-2">
                   {isFa && adjacent.prev.headline_fa ? adjacent.prev.headline_fa : adjacent.prev.headline}
                 </span>
-                <span className="text-[11px] text-zinc-700 font-mono" dir="ltr">
+                <span className="text-[11px] text-zinc-500 font-mono" dir="ltr">
                   <LocalTime timeET={adjacent.prev.timeET} showDate={false} />
                 </span>
               </a>
@@ -231,13 +231,13 @@ export default async function EventPage({ params }: Props) {
                 href={`/${locale}/events/${adjacent.next.slug}`}
                 className="group flex flex-col gap-1.5 p-4 rounded-xl border border-zinc-800/60 bg-zinc-950/50 hover:border-zinc-700 hover:bg-zinc-900/50 transition-all text-right"
               >
-                <span className="text-[11px] text-zinc-600 uppercase tracking-wider">
+                <span className="text-[11px] text-zinc-500 uppercase tracking-wider">
                   {(dict.common as Record<string, string>).next}
                 </span>
                 <span className="text-sm text-zinc-400 group-hover:text-white transition-colors line-clamp-2">
                   {isFa && adjacent.next.headline_fa ? adjacent.next.headline_fa : adjacent.next.headline}
                 </span>
-                <span className="text-[11px] text-zinc-700 font-mono" dir="ltr">
+                <span className="text-[11px] text-zinc-500 font-mono" dir="ltr">
                   <LocalTime timeET={adjacent.next.timeET} showDate={false} />
                 </span>
               </a>

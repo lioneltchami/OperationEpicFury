@@ -77,6 +77,17 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${vazirmatn.variable} antialiased bg-black text-white ${locale === "fa" ? "font-vazirmatn" : ""}`}
       >
+        {/* eslint-disable @next/next/no-html-link-for-pages */}
+        <noscript>
+          <div style={{ padding: "2rem", textAlign: "center", color: "#a1a1aa", fontFamily: "sans-serif" }}>
+            <h1 style={{ color: "white", marginBottom: "1rem" }}>Operation Epic Fury</h1>
+            <p>This site requires JavaScript for the interactive timeline.</p>
+            <p style={{ marginTop: "0.5rem" }}>
+              <a href="/api/rss" style={{ color: "#ef4444" }}>Subscribe via RSS</a> to follow events without JavaScript.
+            </p>
+          </div>
+        </noscript>
+        {/* eslint-enable @next/next/no-html-link-for-pages */}
         <MotionProvider>
           {children}
         </MotionProvider>

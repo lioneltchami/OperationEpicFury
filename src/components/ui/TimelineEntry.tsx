@@ -41,6 +41,9 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
         "relative pb-12 group",
         isRtl ? "pr-8 md:pr-12" : "pl-8 md:pl-12"
       )}
+      role="article"
+      aria-label={`${event.timeET} — ${headline}`}
+      tabIndex={0}
     >
       {/* Dot */}
       <div

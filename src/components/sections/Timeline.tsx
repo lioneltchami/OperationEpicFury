@@ -31,6 +31,7 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
   const [allEvents, setAllEvents] = useState(initialEvents);
   const [filter, setFilter] = useState<EventCategory | null>(null);
   const [loading, setLoading] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
   const hasMore = !filter && allEvents.length < totalEvents;
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -52,6 +53,7 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
         const data = await res.json();
         const newEvents = [...data.events].reverse();
         setAllEvents((prev) => [...prev, ...newEvents]);
+        setAnnouncement(`${newEvents.length} more events loaded`);
       }
     } catch {
       // Silently fail — user can scroll again to retry
@@ -154,6 +156,11 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
             )}
           </div>
         )}
+
+        {/* Screen reader announcement for loaded events */}
+        <div aria-live="polite" aria-atomic="true" className="sr-only">
+          {announcement}
+        </div>
       </div>
     </section>
   );
