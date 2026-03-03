@@ -1,13 +1,14 @@
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 import { getPublishedEventsPaginated } from "@/lib/kv";
 
 import { SITE_URL } from "@/lib/utils";
 
-
-
 export async function GET(req: NextRequest) {
   const params = req.nextUrl.searchParams;
-  const limit = Math.min(Math.max(parseInt(params.get("limit") ?? "10") || 10, 1), 30);
+  const limit = Math.min(
+    Math.max(parseInt(params.get("limit") ?? "10") || 10, 1),
+    30,
+  );
   const category = params.get("category") ?? "";
   const theme = params.get("theme") === "light" ? "light" : "dark";
 
@@ -67,11 +68,14 @@ a:hover{text-decoration:underline!important}
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "public, max-age=300",
       "Access-Control-Allow-Origin": "*",
-      "X-Frame-Options": "ALLOWALL",
     },
   });
 }
 
 function escapeHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
