@@ -86,6 +86,7 @@ export default async function EventPage({ params }: Props) {
   const body = isFa && event.body_fa ? event.body_fa : event.body;
   const catLabels = dict.categories as Record<string, string>;
   const catLabel = catLabels[event.category] ?? event.category;
+  const confidenceLabel = event.confidence ?? "confirmed";
 
   const categoryColors: Record<string, { text: string; bg: string; border: string }> = {
     strike: { text: "text-red-400", bg: "bg-red-500/15", border: "border-red-500/30" },
@@ -164,6 +165,17 @@ export default async function EventPage({ params }: Props) {
             >
               {catLabel}
             </span>
+            {confidenceLabel !== "confirmed" && (
+              <span
+                className={`px-2.5 py-1 text-[11px] font-bold tracking-widest border rounded ${
+                  confidenceLabel === "disputed"
+                    ? "text-orange-400 bg-orange-500/15 border-orange-500/30"
+                    : "text-yellow-400 bg-yellow-500/15 border-yellow-500/30"
+                }`}
+              >
+                {confidenceLabel === "disputed" ? "⚠ Disputed" : "? Unconfirmed"}
+              </span>
+            )}
           </div>
 
           {/* Headline */}
@@ -187,18 +199,42 @@ export default async function EventPage({ params }: Props) {
             </div>
           )}
 
-          {/* Source */}
+          {/* Source(s) */}
           <div className="flex items-center justify-between border-t border-zinc-800/60 pt-6 mb-10">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-zinc-500">{dict.common.source}:</span>
-              <a
-                href={event.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-red-400/70 hover:text-red-400 transition-colors font-mono"
-              >
-                {event.source} {isRtl ? "\u2190" : "\u2192"}
-              </a>
+            <div className="flex flex-col gap-2">
+              {event.sources && event.sources.length > 0 ? (
+                <>
+                  <span className="text-xs text-zinc-500">{dict.common.source}s:</span>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1">
+                    {event.sources.map((src, i) => (
+                      <a
+                        key={i}
+                        href={src.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-red-400/70 hover:text-red-400 transition-colors font-mono"
+                      >
+                        {src.name}
+                        {src.region && (
+                          <span className="text-zinc-600 ml-1">({src.region})</span>
+                        )}
+                      </a>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-zinc-500">{dict.common.source}:</span>
+                  <a
+                    href={event.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-red-400/70 hover:text-red-400 transition-colors font-mono"
+                  >
+                    {event.source} {isRtl ? "\u2190" : "\u2192"}
+                  </a>
+                </div>
+              )}
             </div>
             <ShareButtons
               url={`${SITE_URL}/${locale}/events/${slug}`}

@@ -5,7 +5,7 @@ import { m } from "framer-motion";
 import { TracingBeam } from "@/components/ui/TracingBeam";
 import { TimelineEntry } from "@/components/ui/TimelineEntry";
 import { SearchBar } from "@/components/ui/SearchBar";
-import type { TimelineEvent, EventCategory } from "@/data/timeline";
+import type { TimelineEvent, EventCategory, SourceRegion } from "@/data/timeline";
 import { useLocale } from "@/i18n/LocaleContext";
 
 const EAGER_COUNT = 20;
@@ -13,6 +13,14 @@ const EAGER_COUNT = 20;
 const CATEGORIES: EventCategory[] = [
   "strike", "retaliation", "announcement", "casualty",
   "world-reaction", "breaking", "breaking-important",
+];
+
+const SOURCE_REGIONS: { key: SourceRegion; labelKey: string }[] = [
+  { key: "us", labelKey: "sourceUS" },
+  { key: "eu", labelKey: "sourceEU" },
+  { key: "middle-east", labelKey: "sourceME" },
+  { key: "asia", labelKey: "sourceAsia" },
+  { key: "other", labelKey: "sourceOther" },
 ];
 
 interface TimelineProps {
@@ -30,12 +38,17 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
 
   const [allEvents, setAllEvents] = useState(initialEvents);
   const [filter, setFilter] = useState<EventCategory | null>(null);
+  const [regionFilter, setRegionFilter] = useState<SourceRegion | null>(null);
   const [loading, setLoading] = useState(false);
   const [announcement, setAnnouncement] = useState("");
-  const hasMore = !filter && allEvents.length < totalEvents;
+  const hasMore = !filter && !regionFilter && allEvents.length < totalEvents;
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const displayed = filter ? allEvents.filter((e) => e.category === filter) : allEvents;
+  const displayed = allEvents.filter((e) => {
+    if (filter && e.category !== filter) return false;
+    if (regionFilter && e.sourceRegion !== regionFilter) return false;
+    return true;
+  });
 
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return;
@@ -102,7 +115,7 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
         </div>
 
         {/* Category filter pills */}
-        <div className="flex flex-wrap justify-center gap-2 mb-12">
+        <div className="flex flex-wrap justify-center gap-2 mb-4">
           <button
             onClick={() => setFilter(null)}
             className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors ${
@@ -124,6 +137,33 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
               }`}
             >
               {catLabels[cat] ?? cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Source region filter pills */}
+        <div className="flex flex-wrap justify-center gap-2 mb-12">
+          <button
+            onClick={() => setRegionFilter(null)}
+            className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors ${
+              !regionFilter
+                ? "bg-zinc-700/40 text-zinc-300 border-zinc-600/40"
+                : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
+            }`}
+          >
+            {timelineDict.allSources}
+          </button>
+          {SOURCE_REGIONS.map((r) => (
+            <button
+              key={r.key}
+              onClick={() => setRegionFilter(regionFilter === r.key ? null : r.key)}
+              className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors ${
+                regionFilter === r.key
+                  ? "bg-zinc-700/40 text-zinc-300 border-zinc-600/40"
+                  : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
+              }`}
+            >
+              {timelineDict[r.labelKey]}
             </button>
           ))}
         </div>

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { m } from "framer-motion";
-import { type TimelineEvent } from "@/data/timeline";
+import type { TimelineEvent, ConfidenceLevel } from "@/data/timeline";
 import { cn } from "@/lib/utils";
 import { LocalTime } from "@/components/ui/LocalTime";
 import { useLocale } from "@/i18n/LocaleContext";
@@ -21,11 +21,18 @@ const categoryConfig: Record<
   "breaking-important": { color: "text-red-400", bg: "bg-red-500/20 border-red-500/40" },
 };
 
+const confidenceConfig: Record<ConfidenceLevel, { icon: string; label: string; className: string }> = {
+  confirmed: { icon: "✓", label: "Confirmed", className: "text-green-400 bg-green-500/15 border-green-500/30" },
+  unconfirmed: { icon: "?", label: "Unconfirmed", className: "text-yellow-400 bg-yellow-500/15 border-yellow-500/30" },
+  disputed: { icon: "⚠", label: "Disputed", className: "text-orange-400 bg-orange-500/15 border-orange-500/30" },
+};
+
 export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
   const { dict, locale, isRtl } = useLocale();
   const [showShare, setShowShare] = useState(false);
   const cat = categoryConfig[event.category];
   const catLabel = dict.categories[event.category as keyof typeof dict.categories];
+  const conf = confidenceConfig[event.confidence ?? "confirmed"];
 
   const isFa = locale === "fa";
   const headline = isFa && event.headline_fa ? event.headline_fa : event.headline;
@@ -82,6 +89,17 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
         >
           {catLabel}
         </span>
+        {event.confidence && event.confidence !== "confirmed" && (
+          <span
+            className={cn(
+              "px-2 py-0.5 text-[11px] font-bold tracking-widest border rounded",
+              conf.className,
+            )}
+            title={conf.label}
+          >
+            {conf.icon} {conf.label}
+          </span>
+        )}
       </div>
 
       {/* Card */}

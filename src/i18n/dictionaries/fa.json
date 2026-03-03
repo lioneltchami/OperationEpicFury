@@ -41,7 +41,13 @@
     "title": "دقیقه به دقیقه",
     "subtitle": "تایم‌لاین کامل",
     "all": "همه",
-    "noResults": "رویدادی یافت نشد"
+    "noResults": "رویدادی یافت نشد",
+    "allSources": "همه منابع",
+    "sourceUS": "آمریکا/غرب",
+    "sourceEU": "اروپا",
+    "sourceME": "خاورمیانه",
+    "sourceAsia": "آسیا",
+    "sourceOther": "سایر"
   },
   "footer": {
     "sources": "منابع",

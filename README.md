@@ -32,6 +32,7 @@ Tweet URLs ──→ GitHub Actions ───────────→ Human c
 ### Key Features
 
 - Bilingual (English/Farsi) with full RTL support
+- Source credibility tracking (confidence levels, multi-source, source regions)
 - Push notifications via Web Push API
 - Admin panel with draft/publish workflow
 - Infinite-scroll timeline with server-side pagination
@@ -93,3 +94,13 @@ src/
 ├── i18n/                  # Dictionaries (en.json, fa.json)
 └── data/                  # TypeScript types
 ```
+
+## Source Credibility
+
+Events support optional credibility metadata:
+
+- `confidence` — `"confirmed"` | `"unconfirmed"` | `"disputed"` (defaults to confirmed if absent)
+- `sourceRegion` — `"us"` | `"eu"` | `"middle-east"` | `"asia"` | `"other"`
+- `sources` — Array of `{ name, url, region? }` for multi-source events
+
+**TODO for GitHub Actions workflows:** Update Claude prompts in `news-cron.yml`, `telegram-news.yml`, `external-news.yml`, and `tweet-news.yml` to populate these fields. Cross-checking rules: 3+ sources from different bias categories → confirmed; single bias category → unconfirmed; contradicting facts → disputed.

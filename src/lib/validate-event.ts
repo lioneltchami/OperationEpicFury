@@ -1,9 +1,12 @@
-import type { EventCategory, TimelineEvent, MediaItem } from "@/data/timeline";
+import type { EventCategory, TimelineEvent, MediaItem, ConfidenceLevel, SourceRegion, EventSource } from "@/data/timeline";
 
 const VALID_CATEGORIES: EventCategory[] = [
   "strike", "retaliation", "announcement", "casualty",
   "world-reaction", "breaking", "breaking-important",
 ];
+
+const VALID_CONFIDENCE: ConfidenceLevel[] = ["confirmed", "unconfirmed", "disputed"];
+const VALID_SOURCE_REGIONS: SourceRegion[] = ["us", "eu", "middle-east", "asia", "other"];
 
 const MAX_HEADLINE = 500;
 const MAX_BODY = 10000;
@@ -93,6 +96,15 @@ export function validateEventInput(
   }
   if (Array.isArray(b.media)) {
     data.media = validateMedia(b.media);
+  }
+  if (typeof b.confidence === "string" && VALID_CONFIDENCE.includes(b.confidence as ConfidenceLevel)) {
+    data.confidence = b.confidence as ConfidenceLevel;
+  }
+  if (typeof b.sourceRegion === "string" && VALID_SOURCE_REGIONS.includes(b.sourceRegion as SourceRegion)) {
+    data.sourceRegion = b.sourceRegion as SourceRegion;
+  }
+  if (Array.isArray(b.sources)) {
+    data.sources = validateSources(b.sources);
   }
 
   return { valid: true, data };
@@ -196,7 +208,46 @@ export function validateEventUpdate(
     }
   }
 
+  if ("confidence" in b) {
+    if (typeof b.confidence === "string" && VALID_CONFIDENCE.includes(b.confidence as ConfidenceLevel)) {
+      data.confidence = b.confidence as ConfidenceLevel;
+    }
+  }
+
+  if ("sourceRegion" in b) {
+    if (typeof b.sourceRegion === "string" && VALID_SOURCE_REGIONS.includes(b.sourceRegion as SourceRegion)) {
+      data.sourceRegion = b.sourceRegion as SourceRegion;
+    }
+  }
+
+  if ("sources" in b) {
+    if (Array.isArray(b.sources)) {
+      data.sources = validateSources(b.sources);
+    }
+  }
+
   return { valid: true, data };
+}
+
+/** Filter sources array to only valid items with known fields. */
+function validateSources(items: unknown[]): EventSource[] {
+  return items
+    .filter((item): item is Record<string, unknown> =>
+      item !== null && typeof item === "object" &&
+      typeof (item as Record<string, unknown>).name === "string" &&
+      typeof (item as Record<string, unknown>).url === "string",
+    )
+    .slice(0, 20) // cap at 20 sources per event
+    .map((item) => {
+      const src: EventSource = {
+        name: (item.name as string).slice(0, 200),
+        url: (item.url as string).slice(0, 2000),
+      };
+      if (typeof item.region === "string" && VALID_SOURCE_REGIONS.includes(item.region as SourceRegion)) {
+        src.region = item.region as SourceRegion;
+      }
+      return src;
+    });
 }
 
 /** Filter media array to only valid items with known fields. */

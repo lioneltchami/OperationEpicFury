@@ -41,7 +41,13 @@
     "title": "Minute by Minute",
     "subtitle": "COMPLETE TIMELINE",
     "all": "All",
-    "noResults": "No events found"
+    "noResults": "No events found",
+    "allSources": "All Sources",
+    "sourceUS": "US/Western",
+    "sourceEU": "European",
+    "sourceME": "Middle East",
+    "sourceAsia": "Asian",
+    "sourceOther": "Other"
   },
   "footer": {
     "sources": "Sources",
