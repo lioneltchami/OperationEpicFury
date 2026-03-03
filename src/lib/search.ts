@@ -53,11 +53,11 @@ export async function searchEvents(
 
   const redis = getRedis();
 
-  // Check if index exists by testing first token
-  const firstKey = `${INDEX_PREFIX}${tokens[0]}`;
-  const exists = await redis.exists(firstKey);
+  // Check if index exists by testing all token keys
+  const keys = tokens.map((t) => `${INDEX_PREFIX}${t}`);
+  const existCounts = await redis.exists(...keys);
 
-  if (exists) {
+  if (existCounts > 0) {
     return searchViaIndex(tokens, limit, redis);
   }
 
@@ -90,7 +90,7 @@ async function searchViaIndex(
 
   // Fetch actual events
   const ids = ranked.map(([id]) => id);
-  const raws = await redis.hmget("events:hash", ...ids);
+  const raws = await redis.hmget("events:data", ...ids);
 
   const events: { event: TimelineEvent; score: number }[] = [];
   for (let i = 0; i < raws.length; i++) {

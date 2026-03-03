@@ -1,5 +1,5 @@
 import { getRedis } from "@/lib/redis";
-import { indexEvent } from "@/lib/search";
+import { indexEvent, deindexEvent } from "@/lib/search";
 import type { TimelineEvent, MediaItem } from "@/data/timeline";
 
 // New structure:
@@ -231,6 +231,7 @@ export async function deleteEvent(id: string): Promise<boolean> {
     pipeline.hdel(SLUG_KEY, event.slug);
   }
   await pipeline.exec();
+  await deindexEvent(event);
   return true;
 }
 

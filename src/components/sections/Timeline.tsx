@@ -101,7 +101,7 @@ export const Timeline = ({ initialEvents, totalEvents, pageSize }: TimelineProps
   }, [loadMore]);
 
   return (
-    <section id="timeline" className="relative py-16 md:py-24 bg-black">
+    <section className="relative py-16 md:py-24 bg-black">
       <div className="max-w-4xl mx-auto px-6 md:px-8">
         {/* Section header */}
         <m.div
