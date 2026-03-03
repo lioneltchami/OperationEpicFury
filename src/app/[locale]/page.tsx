@@ -11,6 +11,8 @@ import { getPublishedEventsPaginated } from "@/lib/kv";
 import { getStats } from "@/lib/stats";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 const INITIAL_PAGE_SIZE = 30;
 
 async function loadData(locale: string) {
