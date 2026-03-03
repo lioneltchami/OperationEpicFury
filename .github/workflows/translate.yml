@@ -41,13 +41,13 @@ jobs:
 
             Determine what needs translating:
             - If `headline_fr` and `body_fr` are missing/empty: translate headline+body from English to French
-            - If `headline` looks like Persian/Arabic script and `headline_fr` is empty: the user wrote in French in the headline field. Set headline_fr = headline, body_fr = body, then translate to English for headline and body.
-            - If both English and Farsi are already filled: skip translation, just log that no translation needed.
+            - If `headline_fr` is filled but `headline` is empty: translate headline_fr+body_fr from French to English for headline and body.
+            - If both English and French are already filled: skip translation, just log that no translation needed.
 
             For French translation:
-            - Write natural, fluent French (Farsi)
+            - Write natural, fluent French
             - Use formal news style
-            - Keep proper nouns in their standard French forms (e.g. ایران, آمریکا, اسرائیل)
+            - Keep proper nouns in their standard French forms (e.g. Iran, les États-Unis, Israël)
             - Translate military/political terms accurately
 
             For English translation (if input was French):
@@ -62,7 +62,7 @@ jobs:
             curl -sf -X PUT "${{ vars.SITE_URL }}/api/events/${{ github.event.client_payload.event_id }}" \
               -H "Authorization: Bearer ${{ secrets.PUBLISH_SECRET }}" \
               -H "Content-Type: application/json" \
-              -d '{"headline": "<en headline>", "body": "<en body>", "headline_fr": "<fa headline>", "body_fr": "<fa body>"}'
+              -d '{"headline": "<en headline>", "body": "<en body>", "headline_fr": "<fr headline>", "body_fr": "<fr body>"}'
             ```
 
             CRITICAL: Write French text as raw UTF-8 characters, NEVER as \u escape sequences.
