@@ -54,7 +54,7 @@ export const Footer = () => {
                 href="/api/rss"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-zinc-600 hover:text-orange-400 transition-colors"
+                className="text-zinc-500 hover:text-orange-400 transition-colors"
                 aria-label="RSS Feed"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -63,7 +63,7 @@ export const Footer = () => {
               </a>
               <a
                 href={`/${locale}/archive`}
-                className="text-zinc-600 hover:text-white transition-colors"
+                className="text-zinc-500 hover:text-white transition-colors"
                 aria-label={isFa ? "آرشیو" : "Archive"}
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -74,7 +74,7 @@ export const Footer = () => {
                 href="https://github.com/FZ1010/OperationEpicFury"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-zinc-600 hover:text-white transition-colors"
+                className="text-zinc-500 hover:text-white transition-colors"
                 aria-label="GitHub"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -90,10 +90,10 @@ export const Footer = () => {
           {/* Embed & Export */}
           {/* eslint-disable @next/next/no-html-link-for-pages */}
           <div className="mt-8 pt-6 border-t border-white/5 flex flex-wrap items-center gap-4 text-[11px]">
-            <a href="/api/export?format=json" className={`text-zinc-600 hover:text-white transition-colors ${monoClass}`}>
+            <a href="/api/export?format=json" className={`text-zinc-500 hover:text-white transition-colors ${monoClass}`}>
               {isFa ? "خروجی JSON" : "Export JSON"}
             </a>
-            <a href="/api/export?format=csv" className={`text-zinc-600 hover:text-white transition-colors ${monoClass}`}>
+            <a href="/api/export?format=csv" className={`text-zinc-500 hover:text-white transition-colors ${monoClass}`}>
               {isFa ? "خروجی CSV" : "Export CSV"}
             </a>
             <button
@@ -101,7 +101,7 @@ export const Footer = () => {
                 const code = '<iframe src="https://opepicfury.info/api/embed" width="480" height="600" frameborder="0"></iframe>';
                 navigator.clipboard.writeText(code);
               }}
-              className={`text-zinc-600 hover:text-white transition-colors ${monoClass}`}
+              className={`text-zinc-500 hover:text-white transition-colors ${monoClass}`}
             >
               {isFa ? "کد جاسازی" : "Embed code ⎘"}
             </button>
