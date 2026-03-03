@@ -1,4 +1,4 @@
-import type { EventCategory, TimelineEvent, MediaItem, ConfidenceLevel, SourceRegion, EventSource } from "@/data/timeline";
+import type { EventCategory, TimelineEvent, MediaItem, ConfidenceLevel, SourceRegion, EventSource, EventLocation } from "@/data/timeline";
 
 const VALID_CATEGORIES: EventCategory[] = [
   "strike", "retaliation", "announcement", "casualty",
@@ -105,6 +105,10 @@ export function validateEventInput(
   }
   if (Array.isArray(b.sources)) {
     data.sources = validateSources(b.sources);
+  }
+  if (b.location != null) {
+    const loc = validateLocation(b.location);
+    if (loc) data.location = loc;
   }
 
   return { valid: true, data };
@@ -226,7 +230,26 @@ export function validateEventUpdate(
     }
   }
 
+  if ("location" in b) {
+    if (b.location == null) {
+      data.location = undefined;
+    } else {
+      const loc = validateLocation(b.location);
+      if (loc) data.location = loc;
+    }
+  }
+
   return { valid: true, data };
+}
+
+/** Validate a location object. Returns null if invalid. */
+function validateLocation(input: unknown): EventLocation | null {
+  if (!input || typeof input !== "object") return null;
+  const loc = input as Record<string, unknown>;
+  if (typeof loc.lat !== "number" || loc.lat < -90 || loc.lat > 90) return null;
+  if (typeof loc.lng !== "number" || loc.lng < -180 || loc.lng > 180) return null;
+  if (typeof loc.name !== "string" || loc.name.length === 0 || loc.name.length > 500) return null;
+  return { lat: loc.lat, lng: loc.lng, name: loc.name };
 }
 
 /** Filter sources array to only valid items with known fields. */

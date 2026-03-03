@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import { getEventBySlug, getAdjacentEvents, getPublishedEvents } from "@/lib/kv";
 import { locales, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n";
@@ -7,6 +8,8 @@ import { LocalTime } from "@/components/ui/LocalTime";
 import { MediaGallery } from "@/components/ui/MediaGallery";
 import { ShareButtons } from "@/components/ui/ShareButtons";
 import { SourcePerspectives } from "@/components/ui/SourcePerspectives";
+
+const EventMap = dynamic(() => import("@/components/ui/EventMap"), { ssr: false });
 
 const SITE_URL = "https://opepicfury.info";
 
@@ -197,6 +200,24 @@ export default async function EventPage({ params }: Props) {
           {event.media && event.media.length > 0 && (
             <div className="mb-8">
               <MediaGallery media={event.media} />
+            </div>
+          )}
+
+          {/* Location map */}
+          {event.location && (
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-3">
+                <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                </svg>
+                <span className="text-sm text-zinc-400">{event.location.name}</span>
+              </div>
+              <EventMap
+                lat={event.location.lat}
+                lng={event.location.lng}
+                name={event.location.name}
+              />
             </div>
           )}
 

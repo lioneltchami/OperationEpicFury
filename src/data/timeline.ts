@@ -28,6 +28,12 @@ export interface EventSource {
   region?: SourceRegion;
 }
 
+export interface EventLocation {
+  lat: number;
+  lng: number;
+  name: string;
+}
+
 export interface TimelineEvent {
   id: string;
   timeET: string;
@@ -45,4 +51,5 @@ export interface TimelineEvent {
   confidence?: ConfidenceLevel;
   sourceRegion?: SourceRegion;
   sources?: EventSource[];
+  location?: EventLocation;
 }
