@@ -1,18 +1,6 @@
-import Redis from "ioredis";
+import { getRedis } from "@/lib/redis";
 
 const RATE_LIMIT_PREFIX = "ratelimit:";
-
-let cachedRedis: Redis | null = null;
-
-function getRedis(): Redis {
-  if (!cachedRedis) {
-    cachedRedis = new Redis(process.env.KV_REDIS_URL!, {
-      maxRetriesPerRequest: 3,
-      lazyConnect: true,
-    });
-  }
-  return cachedRedis;
-}
 
 /**
  * Sliding window rate limiter using Redis.

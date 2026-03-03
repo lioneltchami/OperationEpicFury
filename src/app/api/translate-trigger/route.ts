@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authorize } from "@/lib/authorize";
+import { dispatchGitHubAction } from "@/lib/github";
 
 export async function POST(req: NextRequest) {
   if (!(await authorize(req))) {
@@ -11,31 +12,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "eventId required" }, { status: 400 });
   }
 
-  const token = process.env.GH_PAT;
-  if (!token) {
+  if (!process.env.GH_PAT) {
     return NextResponse.json(
       { error: "GitHub token not configured" },
       { status: 500 },
     );
   }
 
-  const res = await fetch(
-    "https://api.github.com/repos/FZ1010/OperationEpicFury/dispatches",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github.v3+json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        event_type: "translate_event",
-        client_payload: { event_id: eventId },
-      }),
-    },
-  );
+  const ok = await dispatchGitHubAction("translate_event", {
+    event_id: eventId,
+  });
 
-  if (!res.ok) {
+  if (!ok) {
     return NextResponse.json(
       { error: "Failed to trigger translation" },
       { status: 502 },

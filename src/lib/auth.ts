@@ -1,22 +1,10 @@
 import { cookies } from "next/headers";
 import { randomBytes } from "crypto";
-import Redis from "ioredis";
+import { getRedis } from "@/lib/redis";
 
 const COOKIE_NAME = "admin_token";
 const SESSION_PREFIX = "session:";
 const SESSION_TTL = 60 * 60 * 24; // 24 hours
-
-let cachedRedis: Redis | null = null;
-
-function getRedis(): Redis {
-  if (!cachedRedis) {
-    cachedRedis = new Redis(process.env.KV_REDIS_URL!, {
-      maxRetriesPerRequest: 3,
-      lazyConnect: true,
-    });
-  }
-  return cachedRedis;
-}
 
 /** Generate a cryptographically random session token. */
 export function generateSessionToken(): string {
