@@ -1,10 +1,8 @@
-import dynamic from "next/dynamic";
 import type { Metadata } from "next";
-import { getPublishedEvents } from "@/lib/kv";
-import { type Locale } from "@/i18n/config";
+import { AggregateMap } from "@/components/ui/AggregateMapLazy";
 import { getDictionary } from "@/i18n";
-
-const AggregateMap = dynamic(() => import("@/components/ui/AggregateMap"), { ssr: false });
+import type { Locale } from "@/i18n/config";
+import { getPublishedEvents } from "@/lib/kv";
 
 export const metadata: Metadata = {
   title: "Event Map | Operation Epic Fury",
@@ -25,7 +23,7 @@ export default async function MapPage({ params }: Props) {
   ]);
 
   const eventsWithLocation = events.filter((e) => e.location);
-  
+
   const isFr = locale === "fr";
 
   return (
@@ -37,25 +35,41 @@ export default async function MapPage({ params }: Props) {
             href={`/${locale}`}
             className="flex items-center gap-2 text-xs text-zinc-500 hover:text-white transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+              />
             </svg>
             {(dict.common as Record<string, string>).backToTimeline}
           </a>
           <span className="text-[11px] text-zinc-500 font-mono tracking-wider uppercase">
-            {isFr ? "نقشه رویدادها" : "Event Map"} ({eventsWithLocation.length})
+            {isFr ? "Carte des evenements" : "Event Map"} (
+            {eventsWithLocation.length})
           </span>
         </div>
       </div>
 
       {/* Map */}
-      <div className="flex-1 relative" style={{ minHeight: "calc(100vh - 48px)" }}>
+      <div
+        className="flex-1 relative"
+        style={{ minHeight: "calc(100vh - 48px)" }}
+      >
         {eventsWithLocation.length > 0 ? (
           <AggregateMap events={events} locale={locale} />
         ) : (
           <div className="flex items-center justify-center h-full">
             <p className="text-zinc-500 text-sm">
-              {isFr ? "هنوز رویدادی با موقعیت مکانی ثبت نشده است." : "No events with location data yet."}
+              {isFr
+                ? "Aucun evenement avec des donnees de localisation pour l'instant."
+                : "No events with location data yet."}
             </p>
           </div>
         )}

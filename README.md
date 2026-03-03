@@ -41,19 +41,19 @@ Tweet URLs ──→ GitHub Actions ───────────→ Human c
 
 ## Environment Variables
 
-| Variable | Required | Description |
-|---|---|---|
-| `KV_REDIS_URL` | Yes | Redis connection URL (e.g. Upstash) |
-| `ADMIN_PASSWORD` | Yes | Password for admin panel login |
-| `PUBLISH_SECRET` | Yes | Bearer token for API-to-API auth (GitHub Actions → publish endpoint) |
-| `GH_PAT` | Yes | GitHub Personal Access Token for dispatching Actions |
-| `GITHUB_REPO` | No | GitHub repo (default: `FZ1010/OperationEpicFury`) |
-| `TELEGRAM_BOT_TOKEN` | Yes | Telegram Bot API token |
-| `TELEGRAM_WEBHOOK_SECRET` | Yes | Secret for verifying Telegram webhook requests |
-| `TELEGRAM_ALLOWED_USERS` | Yes | Comma-separated Telegram user IDs allowed to submit news |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Yes | VAPID public key for Web Push |
-| `VAPID_PRIVATE_KEY` | Yes | VAPID private key for Web Push |
-| `SITE_URL` | No | Site URL (default: `https://epicfuryops.info`) |
+| Variable                       | Required | Description                                                          |
+| ------------------------------ | -------- | -------------------------------------------------------------------- |
+| `KV_REDIS_URL`                 | Yes      | Redis connection URL (e.g. Upstash)                                  |
+| `ADMIN_PASSWORD`               | Yes      | Password for admin panel login                                       |
+| `PUBLISH_SECRET`               | Yes      | Bearer token for API-to-API auth (GitHub Actions → publish endpoint) |
+| `GH_PAT`                       | Yes      | GitHub Personal Access Token for dispatching Actions                 |
+| `GITHUB_REPO`                  | No       | GitHub repo (default: `FZ1010/OperationEpicFury`)                    |
+| `TELEGRAM_BOT_TOKEN`           | Yes      | Telegram Bot API token                                               |
+| `TELEGRAM_WEBHOOK_SECRET`      | Yes      | Secret for verifying Telegram webhook requests                       |
+| `TELEGRAM_ALLOWED_USERS`       | Yes      | Comma-separated Telegram user IDs allowed to submit news             |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Yes      | VAPID public key for Web Push                                        |
+| `VAPID_PRIVATE_KEY`            | Yes      | VAPID private key for Web Push                                       |
+| `SITE_URL`                     | No       | Site URL (default: `https://epicfuryops.info`)                       |
 
 ## Local Setup
 
@@ -78,7 +78,7 @@ pnpm dev
 ```
 src/
 ├── app/
-│   ├── [locale]/          # i18n pages (en, fa)
+│   ├── [locale]/          # i18n pages (en, fr)
 │   ├── admin/             # Admin panel
 │   └── api/
 │       ├── auth/          # Login (rate-limited)
@@ -91,7 +91,7 @@ src/
 │   ├── sections/          # Hero, Timeline, StatsBar, Footer
 │   └── ui/                # Reusable components
 ├── lib/                   # Redis, auth, KV, validation, etc.
-├── i18n/                  # Dictionaries (en.json, fa.json)
+├── i18n/                  # Dictionaries (en.json, fr.json)
 └── data/                  # TypeScript types
 ```
 

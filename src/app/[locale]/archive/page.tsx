@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { getPublishedEvents } from "@/lib/kv";
-import { type Locale } from "@/i18n/config";
-import { getDictionary } from "@/i18n";
 import { ArchiveList } from "@/components/ui/ArchiveList";
+import { getDictionary } from "@/i18n";
+import type { Locale } from "@/i18n/config";
+import { getPublishedEvents } from "@/lib/kv";
 
 export const metadata: Metadata = {
   title: "Archive | Operation Epic Fury",
@@ -20,7 +20,6 @@ export default async function ArchivePage({ params }: Props) {
     getDictionary(locale as Locale),
   ]);
 
-  
   const isFr = locale === "fr";
 
   // Group events by date (YYYY-MM-DD)
@@ -40,20 +39,30 @@ export default async function ArchivePage({ params }: Props) {
             href={`/${locale}`}
             className="flex items-center gap-2 text-xs text-zinc-500 hover:text-white transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+              />
             </svg>
             {(dict.common as Record<string, string>).backToTimeline}
           </a>
           <span className="text-[11px] text-zinc-500 font-mono tracking-wider uppercase">
-            {isFr ? "آرشیو" : "Archive"} ({events.length})
+            {isFr ? "Archives" : "Archive"} ({events.length})
           </span>
         </div>
       </div>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
         <h1 className="text-2xl font-bold text-white mb-8">
-          {isFr ? "آرشیو رویدادها" : "Event Archive"}
+          {isFr ? "Archives des evenements" : "Event Archive"}
         </h1>
         <ArchiveList
           sortedDates={sortedDates}

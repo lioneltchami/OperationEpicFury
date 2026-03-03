@@ -1,7 +1,7 @@
-import { getPublishedEventsPaginated } from "@/lib/kv";
 import type { TimelineEvent } from "@/data/timeline";
+import { getPublishedEventsPaginated } from "@/lib/kv";
 
-import { SITE_URL, SITE_NAME, SITE_NAME_FR } from "@/lib/utils";
+import { SITE_NAME, SITE_NAME_FR, SITE_URL } from "@/lib/utils";
 
 const FEED_SIZE = 50;
 
@@ -62,7 +62,7 @@ export async function generateRss(locale: "en" | "fr"): Promise<string> {
     <link>${SITE_URL}/${locale}</link>
     <description>${escapeXml(description)}</description>
     <language>${locale}</language>
-    <atom:link href="${SITE_URL}/api/rss${isFr ? "/fa" : ""}" rel="self" type="application/rss+xml"/>
+    <atom:link href="${SITE_URL}/api/rss${isFr ? "/fr" : ""}" rel="self" type="application/rss+xml"/>
 ${items.join("\n")}
   </channel>
 </rss>`;
@@ -76,7 +76,8 @@ export async function generateAtom(locale: "en" | "fr"): Promise<string> {
     ? `Chronologie minute par minute — ${SITE_NAME_FR}`
     : `A minute-by-minute timeline of ${SITE_NAME}`;
   const altLocale = isFr ? "en" : "fr";
-  const updated = events.length > 0 ? eventToIso(events[0]) : new Date().toISOString();
+  const updated =
+    events.length > 0 ? eventToIso(events[0]) : new Date().toISOString();
 
   const entries = events.map((e) => {
     const headline = isFr && e.headline_fr ? e.headline_fr : e.headline;
@@ -97,7 +98,7 @@ export async function generateAtom(locale: "en" | "fr"): Promise<string> {
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>${escapeXml(title)}</title>
   <subtitle>${escapeXml(subtitle)}</subtitle>
-  <link href="${SITE_URL}/api/atom${isFr ? "/fa" : ""}" rel="self" type="application/atom+xml"/>
+  <link href="${SITE_URL}/api/atom${isFr ? "/fr" : ""}" rel="self" type="application/atom+xml"/>
   <link href="${SITE_URL}/${locale}" rel="alternate" type="text/html"/>
   <link href="${SITE_URL}/api/atom/${altLocale === "fr" ? "fr" : ""}" rel="alternate" type="application/atom+xml" hreflang="${altLocale}"/>
   <id>${SITE_URL}/${locale}</id>
