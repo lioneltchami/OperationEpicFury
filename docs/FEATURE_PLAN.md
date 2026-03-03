@@ -425,3 +425,201 @@ The following items came from researching best practices for real-time news site
 ---
 
 *This plan should be executed in priority order. Each phase is a separate commit (or set of commits). Test with `tsc --noEmit` and `eslint` after each phase.*
+
+---
+
+## Phase 15: News Pipeline & Source Expansion
+
+**Origin:** Reddit comments on source diversity (u/rhymeslikeruns, u/EcstaticAd490, u/Arcnotch02) + the fact that the current 8 sources skew heavily left-center/center with no right-leaning outlets. Also: the cron is disabled, and Claude's prompts don't extract confidence or location data.
+**Impact:** Very high — source diversity is the #1 credibility factor for a news aggregator. Without balanced sourcing, the timeline inherits the bias of its inputs.
+
+### Current Source Audit
+
+The 8 hardcoded sources in `news-cron.yml` and their bias ratings (per AllSides / Ad Fontes Media / Media Bias Fact Check consensus):
+
+| Source | Bias Rating | Region | Notes |
+|--------|------------|--------|-------|
+| Fox News | Right / Lean Right | US | Only source with any rightward lean |
+| CNN | Lean Left | US | |
+| Washington Post | Lean Left | US | |
+| Reuters | Center | Global | Wire service, gold standard |
+| Axios | Lean Left | US | |
+| CBS | Lean Left | US | |
+| Times of Israel | Center (on Israeli politics) | Israel | Strong on Israel-specific coverage |
+| Al Jazeera | — | — | **Removed** — excluded per editorial decision |
+
+**Problem:** 5 of 7 remaining sources are US-based. 4 of 7 lean left. Zero European, zero Asian, zero Iranian/Persian sources. Only 1 right-leaning source. No wire services besides Reuters.
+
+### 15.1 — Balanced source list
+
+Reorganize sources into a balanced matrix. The cron should pull from all of these:
+
+**Center / Wire Services (most factual, least bias):**
+| Source | URL | Region |
+|--------|-----|--------|
+| Reuters | https://www.reuters.com/ | Global |
+| Associated Press | https://apnews.com/ | Global |
+| BBC News | https://www.bbc.com/news | UK/Global |
+| Al-Monitor | https://www.al-monitor.com/ | Middle East (US-based) |
+
+**Lean Left / Left:**
+| Source | URL | Region |
+|--------|-----|--------|
+| CNN | https://www.cnn.com/ | US |
+| Washington Post | https://www.washingtonpost.com/ | US |
+| NPR | https://www.npr.org/ | US |
+| France 24 | https://www.france24.com/en/ | Europe (France) |
+
+**Lean Right / Right:**
+| Source | URL | Region |
+|--------|-----|--------|
+| Fox News | https://www.foxnews.com/category/politics/defense/wars/war-with-iran | US |
+| Wall Street Journal | https://www.wsj.com/ | US |
+| New York Post | https://nypost.com/ | US |
+| Daily Telegraph | https://www.telegraph.co.uk/ | UK |
+| Times of Israel | https://www.timesofisrael.com/ | Israel |
+
+**Regional / Non-Western:**
+| Source | URL | Region | Notes |
+|--------|-----|--------|-------|
+| Al Arabiya | https://english.alarabiya.net/ | Middle East (Saudi) | Saudi-aligned perspective |
+| Middle East Eye | https://www.middleeasteye.net/ | Middle East (UK-based) | Independent ME coverage |
+| DW (Deutsche Welle) | https://www.dw.com/en/ | Europe (Germany) | German public broadcaster |
+| NHK World | https://www3.nhk.or.jp/nhkworld/ | Asia (Japan) | Japanese public broadcaster |
+| SCMP | https://www.scmp.com/ | Asia (Hong Kong) | Asian perspective |
+| Iran International | https://www.iranintl.com/en | Iran (UK-based) | Persian diaspora, anti-regime |
+| IRNA | https://en.irna.ir/ | Iran (state) | Iranian state media — use with caution, label clearly |
+
+**Total: 20 sources** — 4 center, 4 lean-left, 5 lean-right, 7 regional/non-Western.
+
+### 15.2 — Source metadata configuration
+
+- **Create:** `src/data/sources.ts`
+- Define a `NewsSource` type and export the full source list:
+  ```typescript
+  export interface NewsSource {
+    id: string;
+    name: string;
+    url: string;
+    bias: "left" | "lean-left" | "center" | "lean-right" | "right";
+    region: "us" | "eu" | "middle-east" | "asia" | "global";
+    reliability: "high" | "medium" | "mixed";  // based on Ad Fontes/MBFC
+    stateMedia?: boolean;  // flag for IRNA, etc.
+  }
+  ```
+- This file becomes the single source of truth — used by the cron, the UI filters, and the source credibility display
+
+### 15.3 — Update news-cron.yml
+
+- **Modify:** `.github/workflows/news-cron.yml`
+- Replace the hardcoded 8-source list with the full 21-source list
+- Group into batches to avoid Claude context limits:
+  - Batch 1: Wire services + center (4 sources)
+  - Batch 2: US left + US right (5+3 sources)
+  - Batch 3: Regional + non-Western (7 sources)
+- Each batch runs as a separate job in the same workflow
+- Add source bias label to the Claude prompt so it can include it in the event JSON
+
+### 15.4 — Re-enable the cron schedule
+
+- **Modify:** `.github/workflows/news-cron.yml`
+- Uncomment the schedule:
+  ```yaml
+  schedule:
+    - cron: "0 */3 * * *"
+  ```
+- Consider staggering: wire services every 2h, others every 3h
+
+### 15.5 — Add bias/region to Claude's output
+
+- **Modify:** All workflow prompts (`news-cron.yml`, `telegram-news.yml`, `external-news.yml`, `tweet-news.yml`)
+- Update the Event JSON template to include:
+  ```json
+  {
+    "sourceRegion": "<region>",
+    "confidence": "confirmed|unconfirmed|disputed",
+    "sources": [{"name": "...", "url": "...", "region": "..."}]
+  }
+  ```
+- For the cron: Claude should cross-reference across sources and set confidence based on corroboration
+- For Telegram/external: confidence defaults to "unconfirmed" (single source)
+
+### 15.6 — Update Claude's cross-checking prompt
+
+- **Modify:** `.github/workflows/news-cron.yml` prompt
+- Add explicit instructions:
+  ```
+  ## Cross-checking rules:
+  - If 3+ sources from different bias categories report the same event → "confirmed"
+  - If only sources from one bias category report it → "unconfirmed"
+  - If sources contradict each other on key facts → "disputed"
+  - Always note which sources agree and which disagree
+  - NEVER trust a single source for casualty numbers — require 2+ sources
+  - State media (IRNA) should be labeled as such and cross-checked against independent sources
+  ```
+
+### 15.7 — Source bias indicator in UI
+
+- **Modify:** `src/components/ui/TimelineEntry.tsx`
+- Show a small colored dot next to the source name:
+  - 🔵 Left / Lean Left
+  - ⚪ Center
+  - 🔴 Right / Lean Right
+  - 🟡 Regional / Non-Western
+- Tooltip on hover showing the full bias rating
+- This ties into Phase 10 (source credibility) — the data model changes from Phase 10 are a prerequisite
+
+### 15.8 — "View from all sides" feature
+
+- When multiple sources cover the same event, show a collapsible "All perspectives" section on the event detail page
+- Group by bias: "Left-leaning sources say...", "Right-leaning sources say...", "Regional sources say..."
+- This is the killer feature that sites like Ground News charge for — offering it free on a conflict tracker would be a major differentiator
+
+---
+
+### Phase 15 Dependencies
+
+- Phase 10 (Source Credibility) should be done first — it adds the `confidence`, `sourceRegion`, and `sources` fields to the data model
+- Phase 15.7 and 15.8 depend on Phase 10's UI work
+- Phase 15.1–15.6 (pipeline changes) are independent and can be done anytime
+
+### Phase 15 Effort Estimate
+
+| Sub-phase | Effort |
+|-----------|--------|
+| 15.1 Source list research | Done (above) |
+| 15.2 Source metadata file | 30 min |
+| 15.3 Update cron workflow | 1-2 hrs |
+| 15.4 Re-enable cron | 5 min |
+| 15.5 Add bias/region to prompts | 1-2 hrs |
+| 15.6 Cross-checking prompt | 1 hr |
+| 15.7 Bias indicator UI | 1-2 hrs |
+| 15.8 "All perspectives" feature | 3-4 hrs |
+| **Total** | **8-12 hrs** |
+
+---
+
+## Updated Priority Matrix (with Phase 15)
+
+### Do First
+| Phase | What | Why |
+|-------|------|-----|
+| **15.1–15.4** | **Source expansion + re-enable cron** | **No news = no site. This is the foundation.** |
+| 7 | RSS & Atom Feeds | Table stakes for news sites |
+| 12 | Accessibility & Brave | Live bug + legal compliance |
+
+### Do Next
+| Phase | What | Why |
+|-------|------|-----|
+| 10 | Source Credibility (data model) | Prerequisite for 15.7 and 15.8 |
+| **15.5–15.6** | **Bias in prompts + cross-checking** | **Makes the credibility data real** |
+| 9 | Social Sharing | Drives traffic |
+| 8 | Search & Filtering | Usability at scale |
+
+### Do Later
+| Phase | What | Why |
+|-------|------|-----|
+| **15.7–15.8** | **Bias UI + "All perspectives"** | **Killer differentiator** |
+| 13 | Offline/PWA | Conflict zone users |
+| 11 | Mini-Map | Visual enhancement |
+| 14 | Archive/Export/Embed | Long-term value |
