@@ -63,6 +63,16 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
       role="article"
       aria-label={`${event.timeET} — ${headline}`}
       tabIndex={0}
+      onKeyDown={(e) => {
+        const el = e.currentTarget;
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          (el.nextElementSibling as HTMLElement)?.focus();
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          (el.previousElementSibling as HTMLElement)?.focus();
+        }
+      }}
     >
       {/* Dot */}
       <div
@@ -144,13 +154,16 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
           <MediaGallery media={event.media} />
         )}
         {event.location && (
-          <div className="flex items-center gap-1.5 mb-3">
+          <a
+            href={event.slug ? `/${locale}/events/${event.slug}#map` : `/${locale}/map`}
+            className="flex items-center gap-1.5 mb-3 group/loc"
+          >
             <svg className="w-3.5 h-3.5 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
             </svg>
-            <span className="text-xs text-zinc-500">{event.location.name}</span>
-          </div>
+            <span className="text-xs text-zinc-500 group-hover/loc:text-red-400 transition-colors">{event.location.name}</span>
+          </a>
         )}
         <div className="flex items-center justify-between">
           <a

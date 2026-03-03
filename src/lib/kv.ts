@@ -1,4 +1,5 @@
 import { getRedis } from "@/lib/redis";
+import { indexEvent } from "@/lib/search";
 import type { TimelineEvent, MediaItem } from "@/data/timeline";
 
 // New structure:
@@ -162,6 +163,7 @@ export async function addEvent(event: TimelineEvent): Promise<void> {
   }
 
   await pipeline.exec();
+  await indexEvent(event);
 }
 
 export async function updateEvent(
@@ -202,6 +204,7 @@ export async function updateEvent(
   }
 
   await pipeline.exec();
+  await indexEvent(updated);
   return updated;
 }
 

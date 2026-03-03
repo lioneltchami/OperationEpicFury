@@ -205,7 +205,7 @@ export default async function EventPage({ params }: Props) {
 
           {/* Location map */}
           {event.location && (
-            <div className="mb-8">
+            <div id="map" className="mb-8">
               <div className="flex items-center gap-2 mb-3">
                 <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />

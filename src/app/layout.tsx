@@ -75,6 +75,9 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} dir={dir} className="dark">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js-ready')" }} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${vazirmatn.variable} antialiased bg-black text-white ${locale === "fa" ? "font-vazirmatn" : ""}`}
       >

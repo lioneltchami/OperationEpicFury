@@ -110,13 +110,22 @@ html[lang="fa"] body {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Ensure text is visible even if animations are blocked (Brave shields) */
+/* Ensure text is visible even if animations are blocked (Brave shields, no-JS) */
 @supports not (animation-fill-mode: both) {
   [style*="split-text-in"],
   [style*="fade-in"] {
     opacity: 1 !important;
     transform: none !important;
   }
+}
+
+/* Fallback: if JS hasn't added .js-ready to <html>, show content immediately.
+   Covers Brave aggressive shields and any JS-blocked scenario. */
+html:not(.js-ready) [style*="split-text-in"],
+html:not(.js-ready) [style*="fade-in"] {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
 }
 
 /* ── ReactBits: SpotlightCard ── */
