@@ -16,7 +16,7 @@ export const Ticker = () => {
       <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-black to-transparent z-10" />
       <ScrollVelocity
         baseVelocity={-2}
-        className={`text-red-400 ${monoClass} text-xs tracking-widest`}
+        className={`text-red-400 font-headline text-xs tracking-widest font-bold uppercase`}
       >
         <span className="flex items-center gap-6">
           {headlines.map((h: string, i: number) => (

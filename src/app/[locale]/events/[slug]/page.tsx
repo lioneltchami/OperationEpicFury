@@ -199,7 +199,7 @@ export default async function EventPage({ params }: Props) {
           </div>
 
           {/* Headline */}
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-6 leading-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-6 leading-tight font-headline">
             {headline}
           </h1>
 

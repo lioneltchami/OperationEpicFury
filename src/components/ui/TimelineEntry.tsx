@@ -137,7 +137,7 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
             : "bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05] hover:border-red-500/20",
         )}
       >
-        <h3 className="text-lg md:text-xl font-bold text-white mb-3 leading-tight">
+        <h3 className="text-lg md:text-xl font-bold text-white mb-3 leading-tight font-headline">
           {event.slug ? (
             <a
               href={`/${locale}/events/${event.slug}`}

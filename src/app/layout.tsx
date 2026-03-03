@@ -1,24 +1,29 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { headers } from "next/headers";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import type { Metadata } from "next";
+import { Barlow_Condensed, Inter, JetBrains_Mono } from "next/font/google";
+import { headers } from "next/headers";
 import { MotionProvider } from "@/components/providers/MotionProvider";
 import { ServiceWorkerRegistration } from "@/components/ui/ServiceWorkerRegistration";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const barlowCondensed = Barlow_Condensed({
+  variable: "--font-barlow",
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "800", "900"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains",
   subsets: ["latin"],
 });
 
-
-import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/utils";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/utils";
 
 const title = `${SITE_NAME} | Timeline`;
 const description = SITE_DESCRIPTION;
@@ -65,30 +70,43 @@ export default async function RootLayout({
 }>) {
   const headersList = await headers();
   const locale = headersList.get("x-next-locale") || "en";
-  
 
   return (
     <html lang={locale} className="dark" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js-ready')" }} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "document.documentElement.classList.add('js-ready')",
+          }}
+        />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white`}
+        className={`${inter.variable} ${barlowCondensed.variable} ${jetbrainsMono.variable} antialiased bg-black text-white`}
       >
         {/* eslint-disable @next/next/no-html-link-for-pages */}
         <noscript>
-          <div style={{ padding: "2rem", textAlign: "center", color: "#a1a1aa", fontFamily: "sans-serif" }}>
-            <h1 style={{ color: "white", marginBottom: "1rem" }}>Operation Epic Fury</h1>
+          <div
+            style={{
+              padding: "2rem",
+              textAlign: "center",
+              color: "#a1a1aa",
+              fontFamily: "sans-serif",
+            }}
+          >
+            <h1 style={{ color: "white", marginBottom: "1rem" }}>
+              Operation Epic Fury
+            </h1>
             <p>This site requires JavaScript for the interactive timeline.</p>
             <p style={{ marginTop: "0.5rem" }}>
-              <a href="/api/rss" style={{ color: "#ef4444" }}>Subscribe via RSS</a> to follow events without JavaScript.
+              <a href="/api/rss" style={{ color: "#ef4444" }}>
+                Subscribe via RSS
+              </a>{" "}
+              to follow events without JavaScript.
             </p>
           </div>
         </noscript>
         {/* eslint-enable @next/next/no-html-link-for-pages */}
-        <MotionProvider>
-          {children}
-        </MotionProvider>
+        <MotionProvider>{children}</MotionProvider>
         <ServiceWorkerRegistration />
         <Analytics />
         <SpeedInsights />

@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
 import { m } from "framer-motion";
+import React from "react";
 import { CountUp } from "@/components/ui/CountUp";
 import { useLocale } from "@/i18n/LocaleContext";
 import type { SiteStats } from "@/lib/stats";
@@ -47,7 +47,7 @@ export const StatsBar = ({ stats }: StatsBarProps) => {
               transition={{ delay: i * 0.1 }}
               className="text-center"
             >
-              <div className="text-2xl md:text-3xl font-black text-white mb-1">
+              <div className="text-2xl md:text-3xl font-black text-white mb-1 font-headline">
                 <CountUp
                   end={stats[stat.key]}
                   suffix={stat.suffix}
@@ -55,7 +55,9 @@ export const StatsBar = ({ stats }: StatsBarProps) => {
                   duration={2.5}
                 />
               </div>
-              <div className={`text-[10px] md:text-xs ${monoClass} tracking-widest text-zinc-500 uppercase`}>
+              <div
+                className={`text-[10px] md:text-xs ${monoClass} tracking-widest text-zinc-500 uppercase`}
+              >
                 {dict.stats[stat.key]}
               </div>
             </m.div>

@@ -1,7 +1,7 @@
 import React from "react";
-import { SplitText } from "@/components/ui/SplitText";
-import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { CurrentDate } from "@/components/ui/CurrentDate";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { SplitText } from "@/components/ui/SplitText";
 import type { Dictionary } from "@/i18n";
 import type { Locale } from "@/i18n/config";
 
@@ -62,14 +62,16 @@ export const Hero = ({ dict, locale }: Props) => {
           className="mb-8"
           style={{ animation: "fade-in-up 0.6s ease-out both" }}
         >
-          <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border border-red-500/30 bg-red-500/10 text-red-400 text-sm ${monoClass} tracking-wider`}>
+          <span
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border border-red-500/30 bg-red-500/10 text-red-400 text-sm ${monoClass} tracking-wider`}
+          >
             <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse-dot" />
             <CurrentDate />
           </span>
         </div>
 
         {/* Main headline */}
-        <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-white mb-6 leading-[0.9] tracking-tight">
+        <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-white mb-6 leading-[0.9] tracking-tight font-headline uppercase">
           <SplitText
             text={dict.hero.headline1}
             className="block text-red-500"
@@ -94,7 +96,7 @@ export const Hero = ({ dict, locale }: Props) => {
 
         {/* Operation names */}
         <div
-          className={`flex flex-wrap items-center justify-center gap-4 text-xs ${monoClass} tracking-widest text-zinc-500`}
+          className={`flex flex-wrap items-center justify-center gap-4 text-xs font-headline font-bold tracking-widest text-zinc-500 uppercase`}
           style={{ animation: "fade-in-down 0.6s ease-out 1.4s both" }}
         >
           <span className="px-3 py-1.5 border border-zinc-800 rounded">
