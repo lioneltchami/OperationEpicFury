@@ -1,6 +1,7 @@
 "use client";
 
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { TimelineEvent } from "@/data/timeline";
@@ -35,27 +36,29 @@ export default function AggregateMap({ events, locale }: AggregateMapProps) {
       attributionControl={false}
     >
       <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
-      {withLocation.map((event) => (
-        <Marker
-          key={event.id}
-          position={[event.location!.lat, event.location!.lng]}
-          icon={redIcon}
-        >
-          <Popup>
-            <div style={{ maxWidth: 220 }}>
-              <a
-                href={`/${locale}/events/${event.slug}`}
-                style={{ color: "#dc2626", fontWeight: "bold", fontSize: 13, textDecoration: "none" }}
-              >
-                {event.headline}
-              </a>
-              <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>
-                {event.location!.name} · {event.timeET}
+      <MarkerClusterGroup chunkedLoading maxClusterRadius={40}>
+        {withLocation.map((event) => (
+          <Marker
+            key={event.id}
+            position={[event.location!.lat, event.location!.lng]}
+            icon={redIcon}
+          >
+            <Popup>
+              <div style={{ maxWidth: 220 }}>
+                <a
+                  href={`/${locale}/events/${event.slug}`}
+                  style={{ color: "#dc2626", fontWeight: "bold", fontSize: 13, textDecoration: "none" }}
+                >
+                  {event.headline}
+                </a>
+                <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>
+                  {event.location!.name} · {event.timeET}
+                </div>
               </div>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
+            </Popup>
+          </Marker>
+        ))}
+      </MarkerClusterGroup>
     </MapContainer>
   );
 }
