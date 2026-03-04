@@ -23,16 +23,17 @@ jobs:
             --repo ${{ github.repository }} \
             --json body -q .body)
 
-          # Try ```json fences, then ~~~json fences, then <pre> tags, then raw JSON in <details>
-          EVENT_JSON=$(echo "$BODY" | sed -n '/```json/,/```/p' | sed '1d;$d' | sed 's/^[[:space:]]*//')
+          # Try ```json fences, then ~~~json fences, then <pre> tags, then raw JSON
+          EVENT_JSON=$(echo "$BODY" | sed -n '/^```json/,/^```/p' | sed '1d;$d' | sed 's/^[[:space:]]*//')
           if [ -z "$EVENT_JSON" ]; then
-            EVENT_JSON=$(echo "$BODY" | sed -n '/~~~json/,/~~~/p' | sed '1d;$d' | sed 's/^[[:space:]]*//')
+            EVENT_JSON=$(echo "$BODY" | sed -n '/^~~~json/,/^~~~/p' | sed '1d;$d' | sed 's/^[[:space:]]*//')
           fi
           if [ -z "$EVENT_JSON" ]; then
             EVENT_JSON=$(echo "$BODY" | sed -n '/<pre>/,/<\/pre>/p' | sed '1d;$d' | sed 's/^[[:space:]]*//')
           fi
           if [ -z "$EVENT_JSON" ]; then
-            EVENT_JSON=$(echo "$BODY" | sed -n '/<details>/,/<\/details>/p' | sed -n '/^{/,/^}/p')
+            # Simple fallback for any JSON block starting with { and ending with }
+            EVENT_JSON=$(echo "$BODY" | sed -n '/^{/,/^}/p' | head -n 20)
           fi
 
           if [ -z "$EVENT_JSON" ]; then
