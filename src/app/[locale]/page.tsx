@@ -115,7 +115,15 @@ export default async function Home({
                 LIVE_TACTICAL_MAP
               </span>
             </div>
-            <AggregateMap events={events} locale={locale} />
+            {events.some(e => e.location) ? (
+              <AggregateMap events={events} locale={locale} />
+            ) : (
+              <div className="flex items-center justify-center h-full bg-zinc-900/50">
+                <p className="text-zinc-600 text-xs font-mono uppercase tracking-widest px-8 text-center">
+                  System Offline: No geolocation data detected in current intel feed
+                </p>
+              </div>
+            )}
             <div className="absolute bottom-4 right-4 z-10">
               <a
                 href={`/${locale}/map`}
