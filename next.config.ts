@@ -15,7 +15,7 @@ const securityHeaders = [
   {
     key: "Content-Security-Policy",
     value:
-      "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://api.telegram.org https://*.telegram.org https://*.basemaps.cartocdn.com https://pbs.twimg.com https://*.twimg.com; media-src 'self' https://api.telegram.org https://*.telegram.org; connect-src 'self' https://vitals.vercel-insights.com https://api.telegram.org https://*.basemaps.cartocdn.com; font-src 'self'; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'",
+      "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' https:; connect-src 'self' https://vitals.vercel-insights.com https://api.telegram.org https://*.basemaps.cartocdn.com; font-src 'self'; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'",
   },
 ];
 
@@ -33,7 +33,7 @@ const embedHeaders = [
   {
     key: "Content-Security-Policy",
     value:
-      "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://api.telegram.org https://*.telegram.org https://*.basemaps.cartocdn.com https://pbs.twimg.com https://*.twimg.com; media-src 'self' https://api.telegram.org https://*.telegram.org; connect-src 'self' https://vitals.vercel-insights.com https://api.telegram.org https://*.basemaps.cartocdn.com; font-src 'self'; frame-src 'none'; frame-ancestors *; object-src 'none'; base-uri 'self'; form-action 'self'",
+      "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' https:; connect-src 'self' https://vitals.vercel-insights.com https://api.telegram.org https://*.basemaps.cartocdn.com; font-src 'self'; frame-src 'none'; frame-ancestors *; object-src 'none'; base-uri 'self'; form-action 'self'",
   },
 ];
 
@@ -46,15 +46,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "api.telegram.org",
-      },
-      {
-        protocol: "https",
-        hostname: "*.telegram.org",
-      },
-      {
-        protocol: "https",
-        hostname: "pbs.twimg.com",
+        hostname: "**",
       },
     ],
   },
