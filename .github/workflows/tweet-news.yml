@@ -78,6 +78,11 @@ jobs:
 
             ## Step 5: Create draft event
 
+            MEDIA HANDLING (CRITICAL):
+            - Look at the "Media JSON" field from the Input section above.
+            - If it contains a JSON array (starts with `[`), you MUST include it as the `media` field. Copy the value EXACTLY as-is -- do NOT wrap it in quotes.
+            - If "Media JSON" is empty or not provided, omit the `media` field entirely.
+
             ```
             curl -sf -X POST "${{ vars.SITE_URL }}/api/events/publish" \
               -H "Authorization: Bearer ${{ secrets.PUBLISH_SECRET }}" \
@@ -95,7 +100,7 @@ jobs:
                 "breaking": <true|false>,
                 "headline_fr": "<French headline>",
                 "body_fr": "<French body>",
-                "media": <Media JSON array or omit if empty>,
+                "media": <PASTE Media JSON here as raw JSON array, NOT as a string>,
                 "status": "draft"
               }'
             ```
@@ -122,8 +127,8 @@ jobs:
 
             CRITICAL RULES:
             - Do NOT use web search. Only use the input provided.
-            - **body is MANDATORY** — always write at least 2 full sentences. NEVER submit with an empty or single-sentence body.
+            - **body is MANDATORY** — always write at least 2 full sentences (minimum 10 characters). The API WILL REJECT events with empty body.
+            - **media is MANDATORY when provided** — if the Input has "Media JSON" with a JSON array, you MUST include it in the POST. Omitting media when it was provided is a failure.
             - All French text must be raw UTF-8, NEVER \u escape sequences.
             - All JSON must be valid. Escape double quotes inside strings.
             - STRICT DATE: Timeline covers events from February 28, 2026 onward.
-            - If Media JSON is provided, pass it through to the publish API as-is.

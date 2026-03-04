@@ -383,7 +383,7 @@ export async function bufferMediaItem(
   const raw = await redis.get(key);
   const items: MediaItem[] = raw ? JSON.parse(raw) : [];
   items.push(item);
-  await redis.set(key, JSON.stringify(items), "EX", 600);
+  await redis.set(key, JSON.stringify(items), "EX", 1800);
   return items.length;
 }
 

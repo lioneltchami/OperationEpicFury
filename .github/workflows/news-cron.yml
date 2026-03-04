@@ -18,7 +18,9 @@ on:
 jobs:
   # ── Batch 1: Wire services + Center (most factual, least bias) ──
   batch-wire-center:
-    if: ${{ github.event_name == 'schedule' || github.event.inputs.batch == 'all' || github.event.inputs.batch == '1' }}
+    if: >-
+      ${{ vars.AUTO_PUBLISH_ENABLED != 'false' &&
+          (github.event_name == 'schedule' || github.event.inputs.batch == 'all' || github.event.inputs.batch == '1') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -36,8 +38,8 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: '--allowed-tools "WebFetch,Bash(gh issue create:*),Bash(gh issue list:*),Bash(curl:*)"'
           prompt: |
-            You are monitoring the Iran-Israel-US military conflict (Operation Epic Fury, started Feb 28 2026).
-            Your job: find NEW developments and create GitHub issues for human review.
+            You are an autonomous news aggregation agent for the Operation Epic Fury timeline (Iran-Israel-US military conflict, started Feb 28 2026).
+            Your job: find NEW developments, score their confidence, and auto-publish or flag for review.
 
             YOUR ONLY NEWS SOURCES for this batch are these WIRE SERVICES & CENTER outlets:
             - Reuters (Center, Global, High reliability): https://www.reuters.com/
@@ -47,18 +49,21 @@ jobs:
 
             Do NOT use web search or any other source not listed above.
 
-            ## Step 1: Gather existing headlines for dedup
+            ## Step 1: Get existing events for dedup
 
-            Fetch published event headlines from the live API:
+            Fetch recent event headlines from the live API:
             ```
-            curl -s ${{ vars.SITE_URL }}/api/events | jq -r '.[].headline'
+            curl -s "${{ vars.SITE_URL }}/api/events/recent?hours=12" | jq -r '.[] | "\(.timeET) | \(.headline)"'
             ```
-            Then check existing GitHub issues:
+            Also check pending GitHub issues:
             ```
-            gh issue list --repo ${{ github.repository }} --label "pending-review" --state all --limit 100 --json title -q '.[].title'
-            gh issue list --repo ${{ github.repository }} --label "published" --state all --limit 100 --json title -q '.[].title'
+            gh issue list --repo ${{ github.repository }} --label "pending-review" --state open --limit 100 --json title -q '.[].title'
             ```
-            Collect ALL these headlines — you must NOT duplicate any of them.
+
+            When checking for duplicates, compare SEMANTIC meaning, not just exact text.
+            "Iran launches missiles at Israel" and "Iranian missile strike hits Israeli territory" describe the SAME event.
+            Compare WHO, WHAT, WHERE, WHEN -- if all four match within a 2-hour window, it IS a duplicate.
+            Only flag as duplicate if the core facts are the same. New details or angles on an existing event are NOT duplicates.
 
             ## Step 2: Fetch latest articles
 
@@ -67,30 +72,91 @@ jobs:
             IGNORE any news NOT about Operation Epic Fury.
             Extract the article's published timestamp.
 
-            ## Step 3: Create issues for NEW events only
+            For EACH article about Operation Epic Fury:
+            - Extract headline, body text, publication timestamp
+            - Extract the article's og:image URL (look for `<meta property="og:image" content="...">`)
+            - Identify which other sources (from this batch) cover the same event
 
-            For each genuinely new development NOT already in existing headlines, create a GitHub issue.
+            ## Step 3: Score confidence for each event
 
-            Category must be one of: strike, retaliation, announcement, casualty, world-reaction, breaking, breaking-important
+            For each new event, calculate a confidence score (0-100):
+            - 2+ sources from different outlets confirm same event: +40
+            - Wire service (Reuters, AP) is one of the sources: +20
+            - 3+ total sources covering same event: +15
+            - Timestamps from multiple sources agree (within 1 hour): +10
+            - NOT sourced solely from state media (IRNA): +10
+            - Category is NOT "breaking-important": +5
 
-            For EACH new event:
+            ## Step 4: Route events based on score
+
+            **Score >= 70 (auto-publish):**
+            POST directly to the publish API with status "published":
+            ```
+            curl -sf -X POST "${{ vars.SITE_URL }}/api/events/publish" \
+              -H "Authorization: Bearer ${{ secrets.PUBLISH_SECRET }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "timeET": "<YYYY-MM-DD HH:MM>",
+                "headline": "<headline>",
+                "body": "<body -- MANDATORY, minimum 2 sentences, AP style>",
+                "category": "<category>",
+                "source": "<primary source>",
+                "sourceUrl": "<primary article url>",
+                "sourceRegion": "<region>",
+                "confidence": "confirmed",
+                "sources": [{"name": "<outlet>", "url": "<article url>", "region": "<region>"}],
+                "breaking": <true|false>,
+                "headline_fr": "<French headline>",
+                "body_fr": "<French body>",
+                "media": [{"fileId": "", "type": "photo", "url": "<og:image url>"}],
+                "status": "published"
+              }'
+            ```
+
+            **Score 40-69 (auto-draft):**
+            Same POST but with `"status": "draft"` and `"confidence": "unconfirmed"`. The draft will auto-promote to published after 30 minutes.
+            ```
+            curl -sf -X POST "${{ vars.SITE_URL }}/api/events/publish" \
+              -H "Authorization: Bearer ${{ secrets.PUBLISH_SECRET }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "timeET": "<YYYY-MM-DD HH:MM>",
+                "headline": "<headline>",
+                "body": "<body -- MANDATORY, minimum 2 sentences, AP style>",
+                "category": "<category>",
+                "source": "<primary source>",
+                "sourceUrl": "<primary article url>",
+                "sourceRegion": "<region>",
+                "confidence": "unconfirmed",
+                "sources": [{"name": "<outlet>", "url": "<article url>", "region": "<region>"}],
+                "breaking": <true|false>,
+                "headline_fr": "<French headline>",
+                "body_fr": "<French body>",
+                "media": [{"fileId": "", "type": "photo", "url": "<og:image url>"}],
+                "status": "draft"
+              }'
+            ```
+
+            **Score < 40 (manual review):**
+            Create a GitHub issue as a fallback for low-confidence events:
             ```
             gh issue create --repo ${{ github.repository }} \
               --title "[News] <English headline>" \
               --label "pending-review" \
               --label "cat:<category>" \
               --body "$(cat <<'ISSUE_EOF'
-            ## Candidate Event — Pending Review
+            ## Candidate Event -- Low Confidence (Score: <score>)
 
             **Category:** `<category>`
             **Source:** [<news outlet name>](<link to the article>)
             **Source Bias:** `<center|lean-left|lean-right|right>`
             **Source Region:** `<us|eu|middle-east|asia|global>`
+            **Confidence Score:** `<score>/100`
 
             ### English
             **<headline>**
 
-            <body — 2-4 sentences, factual>
+            <body -- 2-4 sentences, factual>
 
             ### Français
             **<headline_fr>**
@@ -115,7 +181,8 @@ jobs:
               "sources": [{"name": "<outlet>", "url": "<article url>", "region": "<region>"}],
               "breaking": <true|false>,
               "headline_fr": "<French headline>",
-              "body_fr": "<French body>"
+              "body_fr": "<French body>",
+              "media": [{"fileId": "", "type": "photo", "url": "<og:image url>"}]
             }
             ```
 
@@ -125,28 +192,46 @@ jobs:
             )"
             ```
 
+            LIMITS: Publish at most 5 events per run. If more than 5 events qualify for auto-publish (score >= 40), pick the top 5 by score. Create issues for the rest.
+
+            ## Step 5: Extract structured data
+
+            For each event:
+            - **headline**: English, concise, news-style
+            - **body**: English, MANDATORY -- 2-4 factual sentences in AP style. The API WILL REJECT empty body. Minimum 10 characters.
+            - **timeET**: Article's publication time in ET (America/New_York). Format: "YYYY-MM-DD HH:MM".
+            - **category**: strike, retaliation, announcement, casualty, world-reaction, breaking, breaking-important
+            - **source**: Primary outlet name
+            - **sourceUrl**: Primary article URL
+            - **sourceRegion**: us, eu, middle-east, asia, global
+            - **confidence**: "confirmed" (score >= 70) or "unconfirmed" (score < 70)
+            - **sources**: Array of ALL confirming sources as [{"name": "<outlet>", "url": "<url>", "region": "<region>"}]
+            - **media**: Include og:image as [{"fileId": "", "type": "photo", "url": "<og:image>"}]. MANDATORY when image available. Omit field only if no og:image found.
+            - **headline_fr / body_fr**: French translation, raw UTF-8, NEVER \u escapes
+
             CRITICAL RULES:
+            - body is MANDATORY (min 10 chars). API rejects empty body.
+            - media: ALWAYS include og:image when available. Omitting available images is a failure.
+            - French text: raw UTF-8, NEVER \u escape sequences.
+            - JSON must be valid. Escape double quotes in strings.
+            - STRICT DATE: Only events from Feb 28, 2026 onward.
+            - ONLY TOPIC: Operation Epic Fury. Ignore ALL other news.
             - ONLY source: The four news websites listed above. Do NOT use web search or any other website.
-            - ONLY TOPIC: Operation Epic Fury (Iran-Israel-US military conflict). Ignore ALL other news.
-            - TIMESTAMP: Use the article's published timestamp. Convert to ET (America/New_York). Format: "YYYY-MM-DD HH:MM".
-            - You MUST write French text as raw UTF-8 characters, NEVER as Unicode escape sequences.
-            - The Event JSON must be valid JSON in ```json fences inside a <details> block.
-            - Provide BOTH English and French translations.
-            - Set confidence to "unconfirmed" for single-source events. If multiple sources from this batch confirm the same event, set to "confirmed".
-            - Set breaking to true only for major developments.
-            - If no new developments found, do nothing and say so.
+            - TIMESTAMP: Use the article's published timestamp. Convert to ET (America/New_York).
 
             ## Cross-checking rules:
-            - If 3+ sources from different bias categories report the same event → "confirmed"
-            - If only sources from one bias category report it → "unconfirmed"
-            - If sources contradict each other on key facts → "disputed"
-            - Always note which sources agree and which disagree in the issue body
-            - NEVER trust a single source for casualty numbers — require 2+ sources
+            - If 3+ sources from different bias categories report the same event, set confidence to "confirmed"
+            - If only sources from one bias category report it, set confidence to "unconfirmed"
+            - If sources contradict each other on key facts, set confidence to "disputed"
+            - Always note which sources agree and which disagree
+            - NEVER trust a single source for casualty numbers -- require 2+ sources
             - State media (IRNA) should be labeled as such and cross-checked against independent sources
 
-  # ── Batch 2: US Left + US/UK Right ──
+  # ── Batch 2: US Left + Right + Defense ──
   batch-us-left-right:
-    if: ${{ github.event_name == 'schedule' || github.event.inputs.batch == 'all' || github.event.inputs.batch == '2' }}
+    if: >-
+      ${{ vars.AUTO_PUBLISH_ENABLED != 'false' &&
+          (github.event_name == 'schedule' || github.event.inputs.batch == 'all' || github.event.inputs.batch == '2') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -158,16 +243,16 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Gather news — US Left & Right
+      - name: Gather news — US Left & Right + Defense
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: '--allowed-tools "WebFetch,Bash(gh issue create:*),Bash(gh issue list:*),Bash(curl:*)"'
           prompt: |
-            You are monitoring the Iran-Israel-US military conflict (Operation Epic Fury, started Feb 28 2026).
-            Your job: find NEW developments and create GitHub issues for human review.
+            You are an autonomous news aggregation agent for the Operation Epic Fury timeline (Iran-Israel-US military conflict, started Feb 28 2026).
+            Your job: find NEW developments, score their confidence, and auto-publish or flag for review.
 
-            YOUR ONLY NEWS SOURCES for this batch — a mix of LEFT-LEANING and RIGHT-LEANING outlets:
+            YOUR ONLY NEWS SOURCES for this batch -- a mix of LEFT-LEANING, RIGHT-LEANING, and DEFENSE outlets:
 
             LEFT-LEANING:
             - CNN (Lean Left, US): https://www.cnn.com/
@@ -175,27 +260,30 @@ jobs:
             - NPR (Lean Left, US): https://www.npr.org/
             - France 24 (Lean Left, EU): https://www.france24.com/en/
 
-            RIGHT-LEANING:
+            RIGHT-LEANING / CENTER:
             - Fox News (Lean Right, US): https://www.foxnews.com/category/politics/defense/wars/war-with-iran
-            - Wall Street Journal (Lean Right, US): https://www.wsj.com/
             - New York Post (Lean Right, US): https://nypost.com/
-            - Daily Telegraph (Lean Right, UK): https://www.telegraph.co.uk/
             - Times of Israel (Lean Right, Israel): https://www.timesofisrael.com/
+            - The War Zone (Center, US, Defense/military): https://www.twz.com/
+            - Breaking Defense (Center, US, Defense industry): https://breakingdefense.com/
 
             Do NOT use web search or any other source not listed above.
 
-            ## Step 1: Gather existing headlines for dedup
+            ## Step 1: Get existing events for dedup
 
-            Fetch published event headlines from the live API:
+            Fetch recent event headlines from the live API:
             ```
-            curl -s ${{ vars.SITE_URL }}/api/events | jq -r '.[].headline'
+            curl -s "${{ vars.SITE_URL }}/api/events/recent?hours=12" | jq -r '.[] | "\(.timeET) | \(.headline)"'
             ```
-            Then check existing GitHub issues:
+            Also check pending GitHub issues:
             ```
-            gh issue list --repo ${{ github.repository }} --label "pending-review" --state all --limit 100 --json title -q '.[].title'
-            gh issue list --repo ${{ github.repository }} --label "published" --state all --limit 100 --json title -q '.[].title'
+            gh issue list --repo ${{ github.repository }} --label "pending-review" --state open --limit 100 --json title -q '.[].title'
             ```
-            Collect ALL these headlines — you must NOT duplicate any of them.
+
+            When checking for duplicates, compare SEMANTIC meaning, not just exact text.
+            "Iran launches missiles at Israel" and "Iranian missile strike hits Israeli territory" describe the SAME event.
+            Compare WHO, WHAT, WHERE, WHEN -- if all four match within a 2-hour window, it IS a duplicate.
+            Only flag as duplicate if the core facts are the same. New details or angles on an existing event are NOT duplicates.
 
             ## Step 2: Fetch latest articles
 
@@ -204,32 +292,93 @@ jobs:
             IGNORE any news NOT about Operation Epic Fury.
             Extract the article's published timestamp.
 
-            NOTE: You are reading from BOTH left-leaning and right-leaning sources. When the same event is covered by sources from both sides, note this in the issue body and set confidence to "confirmed". When only one side covers it, set confidence to "unconfirmed".
+            For EACH article about Operation Epic Fury:
+            - Extract headline, body text, publication timestamp
+            - Extract the article's og:image URL (look for `<meta property="og:image" content="...">`)
+            - Identify which other sources (from this batch) cover the same event
 
-            ## Step 3: Create issues for NEW events only
+            NOTE: You are reading from BOTH left-leaning and right-leaning sources. When the same event is covered by sources from both sides, this is the strongest signal of accuracy.
 
-            For each genuinely new development NOT already in existing headlines, create a GitHub issue.
+            ## Step 3: Score confidence for each event
 
-            Category must be one of: strike, retaliation, announcement, casualty, world-reaction, breaking, breaking-important
+            For each new event, calculate a confidence score (0-100):
+            - 2+ sources from different outlets confirm same event: +40
+            - Wire service (Reuters, AP) is one of the sources: +20
+            - 3+ total sources covering same event: +15
+            - Timestamps from multiple sources agree (within 1 hour): +10
+            - NOT sourced solely from state media (IRNA): +10
+            - Category is NOT "breaking-important": +5
 
-            For EACH new event:
+            ## Step 4: Route events based on score
+
+            **Score >= 70 (auto-publish):**
+            POST directly to the publish API with status "published":
+            ```
+            curl -sf -X POST "${{ vars.SITE_URL }}/api/events/publish" \
+              -H "Authorization: Bearer ${{ secrets.PUBLISH_SECRET }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "timeET": "<YYYY-MM-DD HH:MM>",
+                "headline": "<headline>",
+                "body": "<body -- MANDATORY, minimum 2 sentences, AP style>",
+                "category": "<category>",
+                "source": "<primary source>",
+                "sourceUrl": "<primary article url>",
+                "sourceRegion": "<region>",
+                "confidence": "confirmed",
+                "sources": [{"name": "<outlet>", "url": "<article url>", "region": "<region>"}],
+                "breaking": <true|false>,
+                "headline_fr": "<French headline>",
+                "body_fr": "<French body>",
+                "media": [{"fileId": "", "type": "photo", "url": "<og:image url>"}],
+                "status": "published"
+              }'
+            ```
+
+            **Score 40-69 (auto-draft):**
+            Same POST but with `"status": "draft"` and `"confidence": "unconfirmed"`. The draft will auto-promote to published after 30 minutes.
+            ```
+            curl -sf -X POST "${{ vars.SITE_URL }}/api/events/publish" \
+              -H "Authorization: Bearer ${{ secrets.PUBLISH_SECRET }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "timeET": "<YYYY-MM-DD HH:MM>",
+                "headline": "<headline>",
+                "body": "<body -- MANDATORY, minimum 2 sentences, AP style>",
+                "category": "<category>",
+                "source": "<primary source>",
+                "sourceUrl": "<primary article url>",
+                "sourceRegion": "<region>",
+                "confidence": "unconfirmed",
+                "sources": [{"name": "<outlet>", "url": "<article url>", "region": "<region>"}],
+                "breaking": <true|false>,
+                "headline_fr": "<French headline>",
+                "body_fr": "<French body>",
+                "media": [{"fileId": "", "type": "photo", "url": "<og:image url>"}],
+                "status": "draft"
+              }'
+            ```
+
+            **Score < 40 (manual review):**
+            Create a GitHub issue as a fallback for low-confidence events:
             ```
             gh issue create --repo ${{ github.repository }} \
               --title "[News] <English headline>" \
               --label "pending-review" \
               --label "cat:<category>" \
               --body "$(cat <<'ISSUE_EOF'
-            ## Candidate Event — Pending Review
+            ## Candidate Event -- Low Confidence (Score: <score>)
 
             **Category:** `<category>`
             **Source:** [<news outlet name>](<link to the article>)
             **Source Bias:** `<center|lean-left|lean-right|right>`
             **Source Region:** `<us|eu|middle-east|asia|global>`
+            **Confidence Score:** `<score>/100`
 
             ### English
             **<headline>**
 
-            <body — 2-4 sentences, factual>
+            <body -- 2-4 sentences, factual>
 
             ### Français
             **<headline_fr>**
@@ -250,11 +399,12 @@ jobs:
               "source": "<primary news outlet name>",
               "sourceUrl": "<link to the primary article>",
               "sourceRegion": "<us|eu|middle-east|asia|global>",
-              "confidence": "<confirmed|unconfirmed>",
+              "confidence": "unconfirmed",
               "sources": [{"name": "<outlet>", "url": "<article url>", "region": "<region>"}],
               "breaking": <true|false>,
               "headline_fr": "<French headline>",
-              "body_fr": "<French body>"
+              "body_fr": "<French body>",
+              "media": [{"fileId": "", "type": "photo", "url": "<og:image url>"}]
             }
             ```
 
@@ -264,28 +414,46 @@ jobs:
             )"
             ```
 
+            LIMITS: Publish at most 5 events per run. If more than 5 events qualify for auto-publish (score >= 40), pick the top 5 by score. Create issues for the rest.
+
+            ## Step 5: Extract structured data
+
+            For each event:
+            - **headline**: English, concise, news-style
+            - **body**: English, MANDATORY -- 2-4 factual sentences in AP style. The API WILL REJECT empty body. Minimum 10 characters.
+            - **timeET**: Article's publication time in ET (America/New_York). Format: "YYYY-MM-DD HH:MM".
+            - **category**: strike, retaliation, announcement, casualty, world-reaction, breaking, breaking-important
+            - **source**: Primary outlet name
+            - **sourceUrl**: Primary article URL
+            - **sourceRegion**: us, eu, middle-east, asia, global
+            - **confidence**: "confirmed" (score >= 70) or "unconfirmed" (score < 70)
+            - **sources**: Array of ALL confirming sources as [{"name": "<outlet>", "url": "<url>", "region": "<region>"}]
+            - **media**: Include og:image as [{"fileId": "", "type": "photo", "url": "<og:image>"}]. MANDATORY when image available. Omit field only if no og:image found.
+            - **headline_fr / body_fr**: French translation, raw UTF-8, NEVER \u escapes
+
             CRITICAL RULES:
+            - body is MANDATORY (min 10 chars). API rejects empty body.
+            - media: ALWAYS include og:image when available. Omitting available images is a failure.
+            - French text: raw UTF-8, NEVER \u escape sequences.
+            - JSON must be valid. Escape double quotes in strings.
+            - STRICT DATE: Only events from Feb 28, 2026 onward.
+            - ONLY TOPIC: Operation Epic Fury. Ignore ALL other news.
             - ONLY source: The nine news websites listed above. Do NOT use web search or any other website.
-            - ONLY TOPIC: Operation Epic Fury (Iran-Israel-US military conflict). Ignore ALL other news.
-            - TIMESTAMP: Use the article's published timestamp. Convert to ET (America/New_York). Format: "YYYY-MM-DD HH:MM".
-            - You MUST write French text as raw UTF-8 characters, NEVER as Unicode escape sequences.
-            - The Event JSON must be valid JSON in ```json fences inside a <details> block.
-            - Provide BOTH English and French translations.
-            - If multiple sources (especially from different bias categories) cover the same event, list ALL of them in the sources array and set confidence to "confirmed".
-            - Set breaking to true only for major developments.
-            - If no new developments found, do nothing and say so.
+            - TIMESTAMP: Use the article's published timestamp. Convert to ET (America/New_York).
 
             ## Cross-checking rules:
-            - If 3+ sources from different bias categories report the same event → "confirmed"
-            - If only sources from one bias category report it → "unconfirmed"
-            - If sources contradict each other on key facts → "disputed"
-            - Always note which sources agree and which disagree in the issue body
-            - NEVER trust a single source for casualty numbers — require 2+ sources
+            - If 3+ sources from different bias categories report the same event, set confidence to "confirmed"
+            - If only sources from one bias category report it, set confidence to "unconfirmed"
+            - If sources contradict each other on key facts, set confidence to "disputed"
+            - Always note which sources agree and which disagree
+            - NEVER trust a single source for casualty numbers -- require 2+ sources
             - Left-leaning and right-leaning sources confirming the same facts is the strongest signal of accuracy
 
   # ── Batch 3: Regional & Non-Western ──
   batch-regional:
-    if: ${{ github.event_name == 'schedule' || github.event.inputs.batch == 'all' || github.event.inputs.batch == '3' }}
+    if: >-
+      ${{ vars.AUTO_PUBLISH_ENABLED != 'false' &&
+          (github.event_name == 'schedule' || github.event.inputs.batch == 'all' || github.event.inputs.batch == '3') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -303,34 +471,35 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: '--allowed-tools "WebFetch,Bash(gh issue create:*),Bash(gh issue list:*),Bash(curl:*)"'
           prompt: |
-            You are monitoring the Iran-Israel-US military conflict (Operation Epic Fury, started Feb 28 2026).
-            Your job: find NEW developments and create GitHub issues for human review.
+            You are an autonomous news aggregation agent for the Operation Epic Fury timeline (Iran-Israel-US military conflict, started Feb 28 2026).
+            Your job: find NEW developments, score their confidence, and auto-publish or flag for review.
 
             YOUR ONLY NEWS SOURCES for this batch are REGIONAL & NON-WESTERN outlets:
             - Al Arabiya (Center, Middle East/Saudi): https://english.alarabiya.net/
             - Middle East Eye (Lean Left, Middle East/UK-based): https://www.middleeasteye.net/
             - DW / Deutsche Welle (Center, EU/Germany): https://www.dw.com/en/
-            - NHK World (Center, Asia/Japan): https://www3.nhk.or.jp/nhkworld/
-            - SCMP (Center, Asia/Hong Kong): https://www.scmp.com/
             - Iran International (Lean Right, Iran/UK-based, Persian diaspora): https://www.iranintl.com/en
-            - IRNA (Right, Iran, STATE MEDIA — label clearly, cross-check claims): https://en.irna.ir/
+            - IRNA (Right, Iran, STATE MEDIA -- label clearly, cross-check claims): https://en.irna.ir/
 
             Do NOT use web search or any other source not listed above.
 
             IMPORTANT: IRNA is Iranian state media. Any claims from IRNA must be clearly labeled as "according to Iranian state media" in the body text. Do NOT present IRNA claims as confirmed facts unless independently verified by another source in this batch.
 
-            ## Step 1: Gather existing headlines for dedup
+            ## Step 1: Get existing events for dedup
 
-            Fetch published event headlines from the live API:
+            Fetch recent event headlines from the live API:
             ```
-            curl -s ${{ vars.SITE_URL }}/api/events | jq -r '.[].headline'
+            curl -s "${{ vars.SITE_URL }}/api/events/recent?hours=12" | jq -r '.[] | "\(.timeET) | \(.headline)"'
             ```
-            Then check existing GitHub issues:
+            Also check pending GitHub issues:
             ```
-            gh issue list --repo ${{ github.repository }} --label "pending-review" --state all --limit 100 --json title -q '.[].title'
-            gh issue list --repo ${{ github.repository }} --label "published" --state all --limit 100 --json title -q '.[].title'
+            gh issue list --repo ${{ github.repository }} --label "pending-review" --state open --limit 100 --json title -q '.[].title'
             ```
-            Collect ALL these headlines — you must NOT duplicate any of them.
+
+            When checking for duplicates, compare SEMANTIC meaning, not just exact text.
+            "Iran launches missiles at Israel" and "Iranian missile strike hits Israeli territory" describe the SAME event.
+            Compare WHO, WHAT, WHERE, WHEN -- if all four match within a 2-hour window, it IS a duplicate.
+            Only flag as duplicate if the core facts are the same. New details or angles on an existing event are NOT duplicates.
 
             ## Step 2: Fetch latest articles
 
@@ -339,36 +508,99 @@ jobs:
             IGNORE any news NOT about Operation Epic Fury.
             Extract the article's published timestamp.
 
+            For EACH article about Operation Epic Fury:
+            - Extract headline, body text, publication timestamp
+            - Extract the article's og:image URL (look for `<meta property="og:image" content="...">`)
+            - Identify which other sources (from this batch) cover the same event
+
             These regional sources often provide perspectives not covered by Western media. Pay special attention to:
             - Casualty reports from Middle Eastern sources
             - Diplomatic reactions from non-Western governments
             - Regional impact (airspace closures, refugee movements, economic effects)
 
-            ## Step 3: Create issues for NEW events only
+            ## Step 3: Score confidence for each event
 
-            For each genuinely new development NOT already in existing headlines, create a GitHub issue.
+            For each new event, calculate a confidence score (0-100):
+            - 2+ sources from different outlets confirm same event: +40
+            - Wire service (Reuters, AP) is one of the sources: +20
+            - 3+ total sources covering same event: +15
+            - Timestamps from multiple sources agree (within 1 hour): +10
+            - NOT sourced solely from state media (IRNA): +10
+            - Category is NOT "breaking-important": +5
 
-            Category must be one of: strike, retaliation, announcement, casualty, world-reaction, breaking, breaking-important
+            IMPORTANT for this batch: IRNA-only events automatically score low because they miss the "+10 not sole state media" points and the "+40 multi-source" points. This is by design -- IRNA-only events should go through manual review.
 
-            For EACH new event:
+            ## Step 4: Route events based on score
+
+            **Score >= 70 (auto-publish):**
+            POST directly to the publish API with status "published":
+            ```
+            curl -sf -X POST "${{ vars.SITE_URL }}/api/events/publish" \
+              -H "Authorization: Bearer ${{ secrets.PUBLISH_SECRET }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "timeET": "<YYYY-MM-DD HH:MM>",
+                "headline": "<headline>",
+                "body": "<body -- MANDATORY, minimum 2 sentences, AP style>",
+                "category": "<category>",
+                "source": "<primary source>",
+                "sourceUrl": "<primary article url>",
+                "sourceRegion": "<region>",
+                "confidence": "confirmed",
+                "sources": [{"name": "<outlet>", "url": "<article url>", "region": "<region>"}],
+                "breaking": <true|false>,
+                "headline_fr": "<French headline>",
+                "body_fr": "<French body>",
+                "media": [{"fileId": "", "type": "photo", "url": "<og:image url>"}],
+                "status": "published"
+              }'
+            ```
+
+            **Score 40-69 (auto-draft):**
+            Same POST but with `"status": "draft"` and `"confidence": "unconfirmed"`. The draft will auto-promote to published after 30 minutes.
+            ```
+            curl -sf -X POST "${{ vars.SITE_URL }}/api/events/publish" \
+              -H "Authorization: Bearer ${{ secrets.PUBLISH_SECRET }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "timeET": "<YYYY-MM-DD HH:MM>",
+                "headline": "<headline>",
+                "body": "<body -- MANDATORY, minimum 2 sentences, AP style. If sourced from IRNA, prefix with: According to Iranian state media, ...>",
+                "category": "<category>",
+                "source": "<primary source>",
+                "sourceUrl": "<primary article url>",
+                "sourceRegion": "<region>",
+                "confidence": "unconfirmed",
+                "sources": [{"name": "<outlet>", "url": "<article url>", "region": "<region>"}],
+                "breaking": <true|false>,
+                "headline_fr": "<French headline>",
+                "body_fr": "<French body>",
+                "media": [{"fileId": "", "type": "photo", "url": "<og:image url>"}],
+                "status": "draft"
+              }'
+            ```
+
+            **Score < 40 (manual review):**
+            Create a GitHub issue as a fallback for low-confidence events:
             ```
             gh issue create --repo ${{ github.repository }} \
               --title "[News] <English headline>" \
               --label "pending-review" \
               --label "cat:<category>" \
               --body "$(cat <<'ISSUE_EOF'
-            ## Candidate Event — Pending Review
+            ## Candidate Event -- Low Confidence (Score: <score>)
 
             **Category:** `<category>`
             **Source:** [<news outlet name>](<link to the article>)
             **Source Bias:** `<center|lean-left|lean-right|right>`
             **Source Region:** `<us|eu|middle-east|asia|global>`
             **State Media:** `<yes|no>`
+            **Confidence Score:** `<score>/100`
 
             ### English
             **<headline>**
 
-            <body — 2-4 sentences, factual. If sourced from IRNA, prefix with "According to Iranian state media, ...">
+            <body -- 2-4 sentences, factual. If sourced from IRNA, prefix with "According to Iranian state media, ...">
 
             ### Français
             **<headline_fr>**
@@ -389,11 +621,12 @@ jobs:
               "source": "<news outlet name>",
               "sourceUrl": "<link to the article>",
               "sourceRegion": "<us|eu|middle-east|asia|global>",
-              "confidence": "<confirmed|unconfirmed|disputed>",
+              "confidence": "unconfirmed",
               "sources": [{"name": "<outlet>", "url": "<article url>", "region": "<region>"}],
               "breaking": <true|false>,
               "headline_fr": "<French headline>",
-              "body_fr": "<French body>"
+              "body_fr": "<French body>",
+              "media": [{"fileId": "", "type": "photo", "url": "<og:image url>"}]
             }
             ```
 
@@ -403,23 +636,39 @@ jobs:
             )"
             ```
 
+            LIMITS: Publish at most 5 events per run. If more than 5 events qualify for auto-publish (score >= 40), pick the top 5 by score. Create issues for the rest.
+
+            ## Step 5: Extract structured data
+
+            For each event:
+            - **headline**: English, concise, news-style
+            - **body**: English, MANDATORY -- 2-4 factual sentences in AP style. The API WILL REJECT empty body. Minimum 10 characters. If sourced from IRNA, prefix body with "According to Iranian state media, ..."
+            - **timeET**: Article's publication time in ET (America/New_York). Format: "YYYY-MM-DD HH:MM".
+            - **category**: strike, retaliation, announcement, casualty, world-reaction, breaking, breaking-important
+            - **source**: Primary outlet name
+            - **sourceUrl**: Primary article URL
+            - **sourceRegion**: us, eu, middle-east, asia, global
+            - **confidence**: "confirmed" (score >= 70) or "unconfirmed" (score < 70) or "disputed" (sources contradict)
+            - **sources**: Array of ALL confirming sources as [{"name": "<outlet>", "url": "<url>", "region": "<region>"}]
+            - **media**: Include og:image as [{"fileId": "", "type": "photo", "url": "<og:image>"}]. MANDATORY when image available. Omit field only if no og:image found.
+            - **headline_fr / body_fr**: French translation, raw UTF-8, NEVER \u escapes
+
             CRITICAL RULES:
-            - ONLY source: The seven news websites listed above. Do NOT use web search or any other website.
-            - ONLY TOPIC: Operation Epic Fury (Iran-Israel-US military conflict). Ignore ALL other news.
-            - TIMESTAMP: Use the article's published timestamp. Convert to ET (America/New_York). Format: "YYYY-MM-DD HH:MM".
-            - You MUST write French text as raw UTF-8 characters, NEVER as Unicode escape sequences.
-            - The Event JSON must be valid JSON in ```json fences inside a <details> block.
-            - Provide BOTH English and French translations.
+            - body is MANDATORY (min 10 chars). API rejects empty body.
+            - media: ALWAYS include og:image when available. Omitting available images is a failure.
+            - French text: raw UTF-8, NEVER \u escape sequences.
+            - JSON must be valid. Escape double quotes in strings.
+            - STRICT DATE: Only events from Feb 28, 2026 onward.
+            - ONLY TOPIC: Operation Epic Fury. Ignore ALL other news.
+            - ONLY source: The five news websites listed above. Do NOT use web search or any other website.
+            - TIMESTAMP: Use the article's published timestamp. Convert to ET (America/New_York).
             - IRNA-only events should have confidence "unconfirmed". If IRNA contradicts other sources, set confidence to "disputed".
-            - If multiple sources cover the same event, list ALL in the sources array.
-            - Set breaking to true only for major developments.
-            - If no new developments found, do nothing and say so.
 
             ## Cross-checking rules:
-            - If 3+ sources from different bias categories report the same event → "confirmed"
-            - If only sources from one bias category report it → "unconfirmed"
-            - If sources contradict each other on key facts → "disputed"
-            - Always note which sources agree and which disagree in the issue body
-            - NEVER trust a single source for casualty numbers — require 2+ sources
+            - If 3+ sources from different bias categories report the same event, set confidence to "confirmed"
+            - If only sources from one bias category report it, set confidence to "unconfirmed"
+            - If sources contradict each other on key facts, set confidence to "disputed"
+            - Always note which sources agree and which disagree
+            - NEVER trust a single source for casualty numbers -- require 2+ sources
             - State media (IRNA) should be labeled as such and cross-checked against independent sources
             - IRNA claims that cannot be verified by any other source in this batch should be flagged as "unconfirmed" with a note

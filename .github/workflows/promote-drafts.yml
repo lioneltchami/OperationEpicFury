@@ -1,0 +1,16 @@
+name: Promote Draft Events
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+
+jobs:
+  promote:
+    if: ${{ vars.AUTO_PUBLISH_ENABLED != 'false' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Promote aged drafts
+        run: |
+          curl -sf -X POST "${{ vars.SITE_URL }}/api/cron/promote-drafts" \
+            -H "Authorization: Bearer ${{ secrets.PUBLISH_SECRET }}" \
+            -H "Content-Type: application/json"

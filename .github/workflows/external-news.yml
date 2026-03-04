@@ -142,7 +142,8 @@ jobs:
             CRITICAL RULES:
             - Do NOT search the web. Only fetch the provided URL.
             - Use the ARTICLE'S publication date as timeET, NOT the current time.
-            - **body is MANDATORY** — always write at least 2 full sentences from the article content. NEVER submit with empty body.
+            - **body is MANDATORY** — always write at least 2 full sentences (minimum 10 characters) from the article content. The API WILL REJECT events with empty body.
+            - **media**: If an og:image or article image was found, you MUST include it as the `media` field. Use `[{"fileId": "", "type": "photo", "url": "<image-url>"}]`. Omitting an available image is a failure.
             - All French text must be raw UTF-8, NEVER \u escape sequences.
             - All JSON must be valid. Escape double quotes inside strings.
             - STRICT DATE: Timeline covers events from February 28, 2026 onward.

@@ -97,7 +97,13 @@ jobs:
 
             ## Step 6: Create draft event
 
-            POST the event to the API. Include the media and media_group_id fields from the Input section if they are present (non-empty). If "Media JSON" is provided, include it as the `media` field (it is already a JSON array). If "Media group ID" is provided, include it as `media_group_id`.
+            POST the event to the API.
+
+            MEDIA HANDLING (CRITICAL):
+            - Look at the "Media JSON" field from the Input section above.
+            - If it contains a JSON array (starts with `[`), you MUST include it as the `media` field in your POST payload. Copy the value EXACTLY as-is -- do NOT wrap it in quotes, do NOT modify it, do NOT omit it.
+            - If "Media group ID" is provided and non-empty, include it as `media_group_id`.
+            - If "Media JSON" is empty or not provided, omit the `media` field entirely.
 
             ```
             curl -sf -X POST "${{ vars.SITE_URL }}/api/events/publish" \
@@ -116,7 +122,7 @@ jobs:
                 "breaking": <true|false>,
                 "headline_fr": "<French headline>",
                 "body_fr": "<French body>",
-                "media": <Media JSON array or omit if empty>,
+                "media": <PASTE Media JSON here as raw JSON array, NOT as a string>,
                 "media_group_id": "<media_group_id or omit if empty>",
                 "status": "draft"
               }'
@@ -145,8 +151,8 @@ jobs:
             CRITICAL RULES:
             - Do NOT use web search. Do NOT use any source beyond the input provided.
             - Use the pre-computed "Timestamp (ET)" from the Input directly as timeET. NEVER leave timeET empty.
-            - **body is MANDATORY** — always write at least 2 full sentences. NEVER submit an event with an empty or single-sentence body. If the source is sparse, add factual context.
+            - **body is MANDATORY** — always write at least 2 full sentences (minimum 10 characters). The API WILL REJECT events with empty body. If the source is sparse, add factual context.
+            - **media is MANDATORY when provided** — if the Input has "Media JSON" with a JSON array, you MUST include it in the POST. The API will accept it. Omitting media when it was provided is a failure.
             - All French text must be raw UTF-8 characters, NEVER \u escape sequences.
             - All JSON must be valid. Escape double quotes inside strings.
             - STRICT DATE: This timeline covers events from February 28, 2026 onward. Reject anything before that date.
-            - If Media JSON is provided, pass it through to the publish API as-is.
