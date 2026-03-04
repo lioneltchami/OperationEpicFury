@@ -31,24 +31,32 @@ jobs:
             Message ID: ${{ github.event.client_payload.message_id }}
             Telegram Media (fallback): ${{ github.event.client_payload.telegram_media }}
 
-            ## Step 1: Fetch the article
+            ## Step 1: Extract image and metadata from raw HTML
 
-            Use WebFetch or curl to fetch the article at the URL above. Extract:
+            CRITICAL: You MUST use curl (NOT WebFetch) to extract the og:image, because WebFetch converts HTML to markdown and strips meta tags.
+
+            Run this command FIRST to get the article image and publication date:
+            ```
+            curl -sL "${{ github.event.client_payload.url }}" | grep -o 'og:image[^>]*content="[^"]*"' | head -1
+            ```
+            This will output something like: `og:image" content="https://example.com/image.jpg"`
+            Extract the URL from the content attribute. This is your article image.
+
+            Also extract the publication date:
+            ```
+            curl -sL "${{ github.event.client_payload.url }}" | grep -o 'article:published_time[^>]*content="[^"]*"\|datePublished[^"]*"[^"]*"' | head -1
+            ```
+
+            ## Step 2: Fetch article content
+
+            Now use WebFetch to get the article text (it's better for reading content as markdown):
             - **Article headline/title**
             - **Article body text** (the main content, not navigation/ads)
-            - **Publication date/time** — look for:
-              - `<meta property="article:published_time">` or `<meta name="pubdate">`
-              - `<time datetime="...">` elements
-              - JSON-LD `datePublished` field
-              - Any visible date/time in the article
-            - **Article image** — look for:
-              - `<meta property="og:image">` tag
-              - The primary/hero image of the article
-              - Any significant images in the article body
+            - **Publication date/time** (as backup if Step 1 didn't find it)
 
             Do NOT search the web. Do NOT use any source other than the provided URL.
 
-            ## Step 2: Check for duplicates
+            ## Step 3: Check for duplicates
 
             Fetch existing events:
             ```
@@ -66,18 +74,18 @@ jobs:
             ```
             Then stop.
 
-            ## Step 3: Determine the timestamp
+            ## Step 4: Determine the timestamp
 
             CRITICAL: Use the **article's publication date** extracted in Step 1, NOT the current time.
             Convert it to America/New_York timezone in "YYYY-MM-DD HH:MM" format.
 
             If the article has no extractable publication date, use the current time in ET as a fallback and note this in the body.
 
-            ## Step 4: Extract structured data
+            ## Step 5: Extract structured data
 
             - **headline**: English, concise, news-style (rewrite the article title if needed for brevity)
             - **body**: English, **MANDATORY** — ALWAYS write 2-4 factual sentences in AP news style summarizing the article. NEVER leave body empty or under 2 sentences.
-            - **timeET**: From Step 3 (article publication time in ET)
+            - **timeET**: From Step 4 (article publication time in ET)
             - **category**: One of: strike, retaliation, announcement, casualty, world-reaction, breaking, breaking-important
             - **source**: The news outlet name (e.g. "Reuters", "AP", "BBC")
             - **sourceUrl**: The input URL
@@ -90,7 +98,7 @@ jobs:
               2. If NO article image was found but "Telegram Media (fallback)" contains a JSON array, use that instead (copy as-is)
               3. If neither is available, omit the media field
 
-            ## Step 5: Translate to French
+            ## Step 6: Translate to French
 
             Translate headline and body to natural, fluent French in formal news style.
             Use standard French forms for proper nouns.
@@ -133,7 +141,7 @@ jobs:
             Include in your POST payload:
             "location": { "name": "<place name>", "lat": <latitude>, "lng": <longitude> }
 
-            ## Step 6: Create draft event
+            ## Step 7: Create draft event
 
             ```
             curl -sf -X POST "${{ vars.SITE_URL }}/api/events/publish" \
@@ -160,7 +168,7 @@ jobs:
 
             Save the response — it contains the event `id`.
 
-            ## Step 7: Send callback
+            ## Step 8: Send callback
 
             On success:
             ```

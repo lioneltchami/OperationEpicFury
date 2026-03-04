@@ -39,7 +39,15 @@ jobs:
             ## Step 1: Gather content
 
             Use the provided text and forward origin as the source material.
-            If URLs are provided, fetch them with WebFetch or curl to get more detail.
+
+            If URLs are provided AND no "Media JSON" was included:
+            1. First extract the og:image using curl (WebFetch strips meta tags):
+               ```
+               curl -sL "<first URL>" | grep -o 'og:image[^>]*content="[^"]*"' | head -1
+               ```
+               If found, use this image URL as media: `[{"fileId": "", "type": "photo", "url": "<extracted-url>"}]`
+            2. Then fetch the URL with WebFetch for article text/context.
+
             If the text starts with "[Tweet by ...]", this is a tweet. Use the author as the source name and the URL as sourceUrl. The tweet text is already extracted — no need to fetch the URL.
             Do NOT search the web. Do NOT use any source other than what was provided in the input above.
 
