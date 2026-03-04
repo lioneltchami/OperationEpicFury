@@ -5,6 +5,7 @@ import React from "react";
 import { CountUp } from "@/components/ui/CountUp";
 import { useLocale } from "@/i18n/LocaleContext";
 import type { SiteStats } from "@/lib/stats";
+import { useStats } from "@/hooks/use-realtime-data";
 
 const statConfig = [
   { key: "killed" as const, suffix: "+", prefix: "" },
@@ -21,7 +22,8 @@ interface StatsBarProps {
   stats: SiteStats | null;
 }
 
-export const StatsBar = ({ stats }: StatsBarProps) => {
+export const StatsBar = ({ stats: initialStats }: StatsBarProps) => {
+  const { data: stats } = useStats(initialStats);
   const { dict, locale } = useLocale();
   const isFr = locale === "fr";
   const monoClass = isFr ? "" : "font-mono";
@@ -49,7 +51,7 @@ export const StatsBar = ({ stats }: StatsBarProps) => {
             >
               <div className="text-2xl md:text-3xl font-black text-white mb-1 font-headline">
                 <CountUp
-                  end={stats[stat.key]}
+                  end={stats[stat.key as keyof SiteStats]}
                   suffix={stat.suffix}
                   prefix={stat.prefix}
                   duration={2.5}

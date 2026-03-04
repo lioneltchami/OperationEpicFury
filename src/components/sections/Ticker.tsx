@@ -1,12 +1,25 @@
 "use client";
 
 import React from "react";
+import { useMemo } from "react";
 import { ScrollVelocity } from "@/components/ui/ScrollVelocity";
 import { useLocale } from "@/i18n/LocaleContext";
+import { useTimelineEvents } from "@/hooks/use-realtime-data";
 
-export const Ticker = () => {
+export const Ticker = ({ initialHeadlines }: { initialHeadlines?: string[] }) => {
   const { dict, locale } = useLocale();
-  const headlines = dict.ticker.headlines;
+  const { data: liveEvents } = useTimelineEvents();
+
+  const headlines = useMemo(() => {
+    if (liveEvents && Array.isArray(liveEvents)) {
+      return [...liveEvents]
+        .reverse()
+        .slice(0, 10)
+        .map((e) => e.headline);
+    }
+    return initialHeadlines || dict.ticker.headlines;
+  }, [liveEvents, initialHeadlines, dict.ticker.headlines]);
+
   const isFr = locale === "fr";
   const monoClass = isFr ? "" : "font-mono";
 

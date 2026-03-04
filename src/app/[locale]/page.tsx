@@ -102,7 +102,7 @@ export default async function Home({
       </a>
       <main className="min-h-screen bg-black">
         <Hero dict={dict} locale={locale as Locale} />
-        <Ticker />
+        <Ticker initialHeadlines={events.slice(0, 10).map(e => e.headline)} />
         <StatsBar stats={stats} />
         <div id="timeline">
           <Timeline

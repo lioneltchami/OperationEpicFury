@@ -11,6 +11,7 @@ import type {
   TimelineEvent,
 } from "@/data/timeline";
 import { useLocale } from "@/i18n/LocaleContext";
+import { useTimelineEvents } from "@/hooks/use-realtime-data";
 
 const EAGER_COUNT = 20;
 
@@ -50,6 +51,21 @@ export const Timeline = ({
   const timelineDict = dict.timeline as Record<string, string>;
 
   const [allEvents, setAllEvents] = useState(initialEvents);
+  const { data: liveEvents } = useTimelineEvents();
+
+  // Merge live updates
+  useEffect(() => {
+    if (liveEvents && Array.isArray(liveEvents)) {
+      const newestFirst = [...liveEvents].reverse();
+      setAllEvents((prev) => {
+        const existingIds = new Set(prev.map((e) => e.id));
+        const toAdd = newestFirst.filter((e) => !existingIds.has(e.id));
+        if (toAdd.length === 0) return prev;
+        // Prepend new arrivals to the top
+        return [...toAdd, ...prev];
+      });
+    }
+  }, [liveEvents]);
   const [filter, setFilter] = useState<EventCategory | null>(null);
   const [regionFilter, setRegionFilter] = useState<SourceRegion | null>(null);
   const [loading, setLoading] = useState(false);
@@ -148,11 +164,10 @@ export const Timeline = ({
         <div className="flex flex-wrap justify-center gap-2 mb-4">
           <button
             onClick={() => setFilter(null)}
-            className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:outline-none ${
-              !filter
+            className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:outline-none ${!filter
                 ? "bg-red-500/20 text-red-400 border-red-500/40"
                 : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
-            }`}
+              }`}
           >
             {timelineDict.all}
           </button>
@@ -160,11 +175,10 @@ export const Timeline = ({
             <button
               key={cat}
               onClick={() => setFilter(filter === cat ? null : cat)}
-              className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:outline-none ${
-                filter === cat
+              className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:outline-none ${filter === cat
                   ? "bg-red-500/20 text-red-400 border-red-500/40"
                   : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
-              }`}
+                }`}
             >
               {catLabels[cat] ?? cat}
             </button>
@@ -175,11 +189,10 @@ export const Timeline = ({
         <div className="flex flex-wrap justify-center gap-2 mb-12">
           <button
             onClick={() => setRegionFilter(null)}
-            className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:outline-none ${
-              !regionFilter
+            className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:outline-none ${!regionFilter
                 ? "bg-zinc-700/40 text-zinc-300 border-zinc-600/40"
                 : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
-            }`}
+              }`}
           >
             {timelineDict.allSources}
           </button>
@@ -189,11 +202,10 @@ export const Timeline = ({
               onClick={() =>
                 setRegionFilter(regionFilter === r.key ? null : r.key)
               }
-              className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:outline-none ${
-                regionFilter === r.key
+              className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:outline-none ${regionFilter === r.key
                   ? "bg-zinc-700/40 text-zinc-300 border-zinc-600/40"
                   : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
-              }`}
+                }`}
             >
               {timelineDict[r.labelKey]}
             </button>
@@ -209,9 +221,9 @@ export const Timeline = ({
                 style={
                   i >= EAGER_COUNT
                     ? {
-                        contentVisibility: "auto",
-                        containIntrinsicSize: "auto 400px",
-                      }
+                      contentVisibility: "auto",
+                      containIntrinsicSize: "auto 400px",
+                    }
                     : undefined
                 }
               >
