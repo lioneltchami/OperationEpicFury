@@ -1,20 +1,26 @@
-import { NextRequest, NextResponse } from "next/server";
-import { authorize } from "@/lib/authorize";
-import { getAllEvents, addEvent, getBufferedMedia } from "@/lib/kv";
-import { generateSlug } from "@/lib/slug";
-import { notifySubscribers } from "@/lib/notify";
-import { validateEventInput } from "@/lib/validate-event";
-import { revalidateTimeline } from "@/lib/revalidate";
+import { type NextRequest, NextResponse } from "next/server";
 import { findSource } from "@/data/sources";
 import type { MediaItem } from "@/data/timeline";
+import { authorize } from "@/lib/authorize";
+import { addEvent, getAllEvents, getBufferedMedia } from "@/lib/kv";
+import { notifySubscribers } from "@/lib/notify";
+import { revalidateTimeline } from "@/lib/revalidate";
+import { generateSlug } from "@/lib/slug";
+import { validateEventInput } from "@/lib/validate-event";
 
 export async function POST(req: NextRequest) {
   if (!(await authorize(req))) {
     const authHeader = req.headers.get("authorization");
-    console.log("[api/events/publish] Unauthorized. Header present:", !!authHeader);
+    console.log(
+      "[api/events/publish] Unauthorized. Header present:",
+      !!authHeader,
+    );
     if (authHeader) {
       console.log("[api/events/publish] Header length:", authHeader.length);
-      console.log("[api/events/publish] Expected length:", `Bearer ${process.env.PUBLISH_SECRET}`.length);
+      console.log(
+        "[api/events/publish] Expected length:",
+        `Bearer ${process.env.PUBLISH_SECRET}`.length,
+      );
     }
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -33,7 +39,9 @@ export async function POST(req: NextRequest) {
 
   // Auto-generate slug from headline
   const existing = await getAllEvents();
-  const existingSlugs = new Set(existing.map((e) => e.slug).filter(Boolean) as string[]);
+  const existingSlugs = new Set(
+    existing.map((e) => e.slug).filter(Boolean) as string[],
+  );
   const slug = generateSlug(result.data.headline, existingSlugs);
 
   // Resolve media: merge direct media with any buffered group media
@@ -59,6 +67,8 @@ export async function POST(req: NextRequest) {
     sourceRegion,
     ...(media.length > 0 ? { media } : {}),
   };
+  event.publishedAt = new Date().toISOString();
+  event.status = "published";
   await addEvent(event);
 
   // Send push notifications (events from this endpoint are published)

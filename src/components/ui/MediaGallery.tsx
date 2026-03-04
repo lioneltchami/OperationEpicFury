@@ -39,56 +39,70 @@ function MediaThumb({
       : undefined;
 
     return (
-      <button
-        onClick={onClick}
-        aria-label="Play video"
-        className="relative w-full max-h-48 overflow-hidden rounded-lg group cursor-pointer bg-zinc-900"
-        style={{ aspectRatio: aspectRatio ?? 16 / 9 }}
-      >
-        {thumbSrc && (
-          <Image
-            src={thumbSrc}
-            alt={eventHeadline || "Video thumbnail"}
-            width={item.width || 320}
-            height={item.height || 240}
-            sizes="(max-width: 640px) 50vw, 200px"
-            className="w-full h-full object-cover"
-          />
+      <div>
+        <button
+          onClick={onClick}
+          aria-label="Play video"
+          className="relative w-full max-h-48 overflow-hidden rounded-lg group cursor-pointer bg-zinc-900"
+          style={{ aspectRatio: aspectRatio ?? 16 / 9 }}
+        >
+          {thumbSrc && (
+            <Image
+              src={thumbSrc}
+              alt={eventHeadline || "Video thumbnail"}
+              width={item.width || 320}
+              height={item.height || 240}
+              sizes="(max-width: 640px) 50vw, 200px"
+              className="w-full h-full object-cover"
+            />
+          )}
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
+            <svg
+              className="w-10 h-10 text-white/90"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+        </button>
+        {item.caption && (
+          <p className="text-[11px] text-zinc-500 mt-1 line-clamp-2">
+            {item.caption}
+          </p>
         )}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
-          <svg
-            className="w-10 h-10 text-white/90"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path d="M8 5v14l11-7z" />
-          </svg>
-        </div>
-      </button>
+      </div>
     );
   }
 
   return (
-    <button
-      onClick={onClick}
-      aria-label="View photo"
-      className="relative w-full max-h-48 overflow-hidden rounded-lg cursor-pointer"
-    >
-      {!loaded && <Skeleton aspectRatio={aspectRatio} />}
-      <Image
-        src={mediaUrl(item)}
-        alt={eventHeadline || "Event media"}
-        unoptimized={!!item.url}
-        width={item.width || 320}
-        height={item.height || 240}
-        sizes="(max-width: 640px) 50vw, 200px"
-        className={cn(
-          "w-full h-full object-cover rounded-lg bg-zinc-900 transition-opacity",
-          loaded ? "hover:opacity-90" : "absolute inset-0 opacity-0",
-        )}
-        onLoad={() => setLoaded(true)}
-      />
-    </button>
+    <div>
+      <button
+        onClick={onClick}
+        aria-label="View photo"
+        className="relative w-full max-h-48 overflow-hidden rounded-lg cursor-pointer"
+      >
+        {!loaded && <Skeleton aspectRatio={aspectRatio} />}
+        <Image
+          src={mediaUrl(item)}
+          alt={eventHeadline || "Event media"}
+          unoptimized={!!item.url}
+          width={item.width || 320}
+          height={item.height || 240}
+          sizes="(max-width: 640px) 50vw, 200px"
+          className={cn(
+            "w-full h-full object-cover rounded-lg bg-zinc-900 transition-opacity",
+            loaded ? "hover:opacity-90" : "absolute inset-0 opacity-0",
+          )}
+          onLoad={() => setLoaded(true)}
+        />
+      </button>
+      {item.caption && (
+        <p className="text-[11px] text-zinc-500 mt-1 line-clamp-2">
+          {item.caption}
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -113,6 +127,21 @@ function Lightbox({
   total: number;
   eventHeadline?: string;
 }) {
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+
+  function handlePointerDown(e: React.PointerEvent) {
+    setTouchStart(e.clientX);
+  }
+
+  function handlePointerUp(e: React.PointerEvent) {
+    if (touchStart === null) return;
+    const diff = e.clientX - touchStart;
+    const threshold = 50;
+    if (diff > threshold && hasPrev) onPrev();
+    if (diff < -threshold && hasNext) onNext();
+    setTouchStart(null);
+  }
+
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -127,6 +156,9 @@ function Lightbox({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
       onClick={onClose}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      style={{ touchAction: "pan-y" }}
     >
       <button
         aria-label="Close"
@@ -174,7 +206,7 @@ function Lightbox({
       {hasNext && (
         <button
           aria-label="Next"
-          className="absolute right-14 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 text-white/70 hover:text-white hover:bg-black/80 transition-all z-50"
+          className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 text-white/70 hover:text-white hover:bg-black/80 transition-all z-50"
           onClick={(e) => {
             e.stopPropagation();
             onNext();
@@ -220,6 +252,11 @@ function Lightbox({
           />
         )}
       </div>
+      {item.caption && (
+        <p className="absolute bottom-12 left-1/2 -translate-x-1/2 max-w-[80vw] bg-black/70 px-4 py-2 rounded text-sm text-zinc-300 text-center">
+          {item.caption}
+        </p>
+      )}
       {total > 1 && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 px-3 py-1 rounded-full text-xs text-zinc-400 font-mono">
           {current} / {total}

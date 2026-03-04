@@ -105,11 +105,40 @@ export default async function EventPage({ params }: Props) {
     inLanguage: locale,
   };
 
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: isFr ? "Accueil" : "Home",
+        item: `${SITE_URL}/${locale}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: isFr ? "Chronologie" : "Timeline",
+        item: `${SITE_URL}/${locale}#timeline`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: headline,
+        item: `${SITE_URL}/${locale}/events/${slug}`,
+      },
+    ],
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
 
       <main className="min-h-screen bg-black">

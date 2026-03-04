@@ -90,6 +90,36 @@ async function searchViaIndex(
     }
   }
 
+  // Prefix matching: only runs if exact matching found few results
+  if (scores.size < limit) {
+    for (const token of tokens) {
+      let cursor = "0";
+      const pattern = `${INDEX_PREFIX}${token}*`;
+      do {
+        const [nextCursor, keys] = await redis.scan(
+          cursor,
+          "MATCH",
+          pattern,
+          "COUNT",
+          "100",
+        );
+        cursor = nextCursor;
+        if (keys.length > 0) {
+          const prefixSets = await Promise.all(
+            keys.map((k) => redis.smembers(k)),
+          );
+          for (const ids of prefixSets) {
+            for (const id of ids) {
+              if (!scores.has(id)) {
+                scores.set(id, 0.5);
+              }
+            }
+          }
+        }
+      } while (cursor !== "0" && scores.size < limit * 3);
+    }
+  }
+
   // Sort by score desc, take top candidates
   const ranked = [...scores.entries()]
     .sort((a, b) => b[1] - a[1])

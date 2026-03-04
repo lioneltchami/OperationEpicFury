@@ -16,6 +16,7 @@ export interface MediaItem {
   height?: number;
   duration?: number;
   mimeType?: string;
+  caption?: string;
 }
 
 export type ConfidenceLevel = "confirmed" | "unconfirmed" | "disputed";
@@ -52,4 +53,7 @@ export interface TimelineEvent {
   sourceRegion?: SourceRegion;
   sources?: EventSource[];
   location?: EventLocation;
+  createdAt?: string;
+  updatedAt?: string;
+  publishedAt?: string;
 }

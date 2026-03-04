@@ -41,6 +41,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "anonymous";
+  const rateCheck = await checkRateLimit(`events:create:${ip}`, 10, 60);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rateCheck.retryAfterSeconds) },
+      },
+    );
+  }
+
   const body = await req.json();
   const result = validateEventInput(body);
   if (!result.valid) {

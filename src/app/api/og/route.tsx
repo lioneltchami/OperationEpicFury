@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 export async function GET(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get("slug");
   if (!slug) {
-    return new ImageResponse(
+    const response = new ImageResponse(
       <div
         style={{
           width: "100%",
@@ -30,6 +30,11 @@ export async function GET(req: NextRequest) {
       </div>,
       { width: 1200, height: 630 },
     );
+    response.headers.set(
+      "Cache-Control",
+      "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800",
+    );
+    return response;
   }
 
   const event = await getEventBySlug(slug);
@@ -43,7 +48,7 @@ export async function GET(req: NextRequest) {
       ? event.headline.slice(0, 117) + "..."
       : event.headline;
 
-  return new ImageResponse(
+  const response = new ImageResponse(
     <div
       style={{
         width: "100%",
@@ -121,4 +126,9 @@ export async function GET(req: NextRequest) {
     </div>,
     { width: 1200, height: 630 },
   );
+  response.headers.set(
+    "Cache-Control",
+    "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800",
+  );
+  return response;
 }
