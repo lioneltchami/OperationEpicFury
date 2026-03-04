@@ -95,19 +95,33 @@ function MediaThumb({
 function Lightbox({
   item,
   onClose,
+  onPrev,
+  onNext,
+  hasPrev,
+  hasNext,
+  current,
+  total,
   eventHeadline,
 }: {
   item: MediaItem;
   onClose: () => void;
+  onPrev: () => void;
+  onNext: () => void;
+  hasPrev: boolean;
+  hasNext: boolean;
+  current: number;
+  total: number;
   eventHeadline?: string;
 }) {
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft" && hasPrev) onPrev();
+      if (e.key === "ArrowRight" && hasNext) onNext();
     }
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
-  }, [onClose]);
+  }, [onClose, onPrev, onNext, hasPrev, hasNext]);
 
   return (
     <div
@@ -133,6 +147,54 @@ function Lightbox({
           />
         </svg>
       </button>
+      {hasPrev && (
+        <button
+          aria-label="Previous"
+          className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 text-white/70 hover:text-white hover:bg-black/80 transition-all z-50"
+          onClick={(e) => {
+            e.stopPropagation();
+            onPrev();
+          }}
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 19.5L8.25 12l7.5-7.5"
+            />
+          </svg>
+        </button>
+      )}
+      {hasNext && (
+        <button
+          aria-label="Next"
+          className="absolute right-14 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 text-white/70 hover:text-white hover:bg-black/80 transition-all z-50"
+          onClick={(e) => {
+            e.stopPropagation();
+            onNext();
+          }}
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M8.25 4.5l7.5 7.5-7.5 7.5"
+            />
+          </svg>
+        </button>
+      )}
       <div
         className="max-w-[90vw] max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
@@ -158,6 +220,11 @@ function Lightbox({
           />
         )}
       </div>
+      {total > 1 && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 px-3 py-1 rounded-full text-xs text-zinc-400 font-mono">
+          {current} / {total}
+        </div>
+      )}
     </div>
   );
 }
@@ -197,6 +264,18 @@ export function MediaGallery({
         <Lightbox
           item={media[lightboxIdx]}
           onClose={closeLightbox}
+          onPrev={() =>
+            setLightboxIdx((i) => (i !== null && i > 0 ? i - 1 : i))
+          }
+          onNext={() =>
+            setLightboxIdx((i) =>
+              i !== null && i < media.length - 1 ? i + 1 : i,
+            )
+          }
+          hasPrev={lightboxIdx > 0}
+          hasNext={lightboxIdx < media.length - 1}
+          current={lightboxIdx + 1}
+          total={media.length}
           eventHeadline={eventHeadline}
         />
       )}

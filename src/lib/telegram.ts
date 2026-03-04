@@ -1,5 +1,10 @@
+import { getRedis, isRedisAvailable } from "@/lib/redis";
+
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
 const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
+
+const FILE_CACHE_PREFIX = "tg:file:";
+const FILE_CACHE_TTL = 3600; // 1 hour (Telegram file paths expire after ~1h)
 
 export async function sendMessage(
   chatId: number | string,
@@ -30,6 +35,28 @@ export async function getFile(fileId: string): Promise<string> {
   if (!res.ok) throw new Error(`getFile failed: ${res.status}`);
   const data = await res.json();
   return data.result.file_path as string;
+}
+
+export async function getFileCached(fileId: string): Promise<string> {
+  if (isRedisAvailable()) {
+    const redis = getRedis();
+    const cached = await redis.get(`${FILE_CACHE_PREFIX}${fileId}`);
+    if (cached) return cached;
+  }
+
+  const filePath = await getFile(fileId);
+
+  if (isRedisAvailable()) {
+    const redis = getRedis();
+    await redis.set(
+      `${FILE_CACHE_PREFIX}${fileId}`,
+      filePath,
+      "EX",
+      FILE_CACHE_TTL,
+    );
+  }
+
+  return filePath;
 }
 
 export function getFileUrl(filePath: string): string {
