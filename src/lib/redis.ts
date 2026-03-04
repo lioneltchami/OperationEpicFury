@@ -10,23 +10,23 @@ export function getRedis(): Redis {
   if (!cachedRedis) {
     const url = process.env.KV_REDIS_URL || process.env.KV_URL;
     if (!url) {
-      throw new Error("Redis connection URL (KV_REDIS_URL or KV_URL) is not set");
+      throw new Error(
+        "Redis connection URL (KV_REDIS_URL or KV_URL) is not set",
+      );
     }
 
     // Upstash often requires rediss:// (TLS)
     let finalUrl = url;
     if (url.includes("upstash.io") && url.startsWith("redis://")) {
       finalUrl = url.replace("redis://", "rediss://");
-      console.log("[redis] Upgrading to TLS for Upstash host");
     }
 
     const useTls = finalUrl.startsWith("rediss://");
     cachedRedis = new Redis(finalUrl, {
       maxRetriesPerRequest: 3,
       lazyConnect: true,
-      family: 6,
       enableReadyCheck: false,
-      connectTimeout: 5000,
+      connectTimeout: 10000,
       ...(useTls ? { tls: { rejectUnauthorized: false } } : {}),
     });
 
