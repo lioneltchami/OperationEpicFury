@@ -1,4 +1,7 @@
-import { SiteStats } from "./src/lib/stats";
+/**
+ * Utility script to update site statistics (Killed, Injured, etc.) via the protected API.
+ * Usage: npx tsx update-stats.ts --killed 565 --missiles 410
+ */
 
 async function updateStats() {
     const secret = process.env.PUBLISH_SECRET;
@@ -10,14 +13,14 @@ async function updateStats() {
     }
 
     const args = process.argv.slice(2);
-    const patch: Partial<SiteStats> = {};
+    const patch: Record<string, number> = {};
 
     for (let i = 0; i < args.length; i++) {
         if (args[i].startsWith("--")) {
             const key = args[i].slice(2);
             const value = parseInt(args[i + 1], 10);
             if (!isNaN(value)) {
-                patch[key as keyof SiteStats] = value;
+                patch[key] = value;
                 i++;
             }
         }
@@ -25,6 +28,7 @@ async function updateStats() {
 
     if (Object.keys(patch).length === 0) {
         console.log("Usage: npx tsx update-stats.ts --killed 600 --missiles 400 ...");
+        console.log("Allowed keys: killed, injured, usKilled, israeliKilled, jets, targets, missiles, countries");
         process.exit(0);
     }
 
