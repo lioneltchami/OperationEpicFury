@@ -29,6 +29,7 @@ jobs:
             URL: ${{ github.event.client_payload.url }}
             Chat ID: ${{ github.event.client_payload.chat_id }}
             Message ID: ${{ github.event.client_payload.message_id }}
+            Telegram Media (fallback): ${{ github.event.client_payload.telegram_media }}
 
             ## Step 1: Fetch the article
 
@@ -84,10 +85,10 @@ jobs:
             - **confidence**: Always "unconfirmed" for single-source articles
             - **sources**: Array with one entry: [{"name": "<source>", "url": "<sourceUrl>", "region": "<sourceRegion>"}]
             - **breaking**: true only for major developments
-            - **media**: If an og:image or article image was found, include it as:
-              ```json
-              [{"fileId": "", "type": "photo", "url": "<image-url>"}]
-              ```
+            - **media**: Use this priority order:
+              1. If an og:image or article image was found, use it: `[{"fileId": "", "type": "photo", "url": "<image-url>"}]`
+              2. If NO article image was found but "Telegram Media (fallback)" contains a JSON array, use that instead (copy as-is)
+              3. If neither is available, omit the media field
 
             ## Step 5: Translate to French
 
@@ -181,7 +182,7 @@ jobs:
             - Do NOT search the web. Only fetch the provided URL.
             - Use the ARTICLE'S publication date as timeET, NOT the current time.
             - **body is MANDATORY** — always write at least 2 full sentences (minimum 10 characters) from the article content. The API WILL REJECT events with empty body.
-            - **media**: If an og:image or article image was found, you MUST include it as the `media` field. Use `[{"fileId": "", "type": "photo", "url": "<image-url>"}]`. Omitting an available image is a failure.
+            - **media**: If an og:image or article image was found, you MUST include it. If no article image exists but "Telegram Media (fallback)" has a JSON array, use that as-is. Omitting an available image is a failure.
             - **location is MANDATORY when determinable** — use the reference coordinates list in the Geocoding section. Almost every event has a location.
             - All French text must be raw UTF-8, NEVER \u escape sequences.
             - All JSON must be valid. Escape double quotes inside strings.
