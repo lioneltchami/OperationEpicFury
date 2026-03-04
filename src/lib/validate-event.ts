@@ -42,10 +42,8 @@ export function validateEventInput(
     return { valid: false, error: `headline must be ${MAX_HEADLINE} characters or less` };
   }
 
-  if (typeof b.body !== "string") {
-    return { valid: false, error: "body is required" };
-  }
-  if (b.body.length > MAX_BODY) {
+  const bodyText = typeof b.body === "string" ? b.body : "";
+  if (bodyText.length > MAX_BODY) {
     return { valid: false, error: `body must be ${MAX_BODY} characters or less` };
   }
 
@@ -75,7 +73,7 @@ export function validateEventInput(
   const data: Omit<TimelineEvent, "id" | "slug"> = {
     timeET: b.timeET as string,
     headline: b.headline as string,
-    body: b.body as string,
+    body: bodyText,
     category: b.category as EventCategory,
     source: b.source as string,
     sourceUrl: b.sourceUrl as string,

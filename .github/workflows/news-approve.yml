@@ -45,18 +45,22 @@ jobs:
           fi
 
           echo "Publishing event..."
-          RESPONSE=$(curl -sf -X POST "${SITE_URL}/api/events/publish" \
+          TEMP_FILE=$(mktemp)
+          HTTP_CODE=$(curl -s -o "$TEMP_FILE" -w "%{http_code}" -X POST "${SITE_URL}/api/events/publish" \
             -H "Authorization: Bearer ${PUBLISH_SECRET}" \
             -H "Content-Type: application/json" \
-            -d "$EVENT_JSON") || {
-            echo "::error::Failed to publish event"
+            -d "$EVENT_JSON")
+
+          if [ "$HTTP_CODE" -ne 201 ] && [ "$HTTP_CODE" -ne 200 ]; then
+            ERROR_BODY=$(cat "$TEMP_FILE")
+            echo "::error::Failed to publish event (HTTP $HTTP_CODE): $ERROR_BODY"
             gh issue comment ${{ github.event.issue.number }} \
               --repo ${{ github.repository }} \
-              --body "Failed to publish event to timeline. Check SITE_URL and PUBLISH_SECRET."
+              --body "Failed to publish event (HTTP $HTTP_CODE): $ERROR_BODY"
             gh issue reopen ${{ github.event.issue.number }} \
               --repo ${{ github.repository }}
             exit 1
-          }
+          fi
 
           echo "Published: $RESPONSE"
 

@@ -8,11 +8,13 @@ import { isAuthenticated } from "@/lib/auth";
  * - A valid Bearer token matching PUBLISH_SECRET
  */
 export async function authorize(req?: NextRequest): Promise<boolean> {
+  const secret = process.env.PUBLISH_SECRET?.trim();
+  if (!secret) return false;
+
   // Check bearer token auth (used by GitHub Actions / external automation)
   if (req) {
-    const authHeader = req.headers.get("authorization");
-    const secret = process.env.PUBLISH_SECRET;
-    if (secret && authHeader === `Bearer ${secret}`) {
+    const authHeader = req.headers.get("authorization") || (req as any).headers?.authorization;
+    if (authHeader === `Bearer ${secret}`) {
       return true;
     }
   }

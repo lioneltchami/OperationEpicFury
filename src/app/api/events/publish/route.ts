@@ -9,6 +9,12 @@ import type { MediaItem } from "@/data/timeline";
 
 export async function POST(req: NextRequest) {
   if (!(await authorize(req))) {
+    const authHeader = req.headers.get("authorization");
+    console.log("[api/events/publish] Unauthorized. Header present:", !!authHeader);
+    if (authHeader) {
+      console.log("[api/events/publish] Header length:", authHeader.length);
+      console.log("[api/events/publish] Expected length:", `Bearer ${process.env.PUBLISH_SECRET}`.length);
+    }
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
