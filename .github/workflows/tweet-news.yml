@@ -76,6 +76,43 @@ jobs:
             Use standard French forms for proper nouns.
             CRITICAL: Write French characters, NEVER as \u escape sequences.
 
+            ## Geocoding (MANDATORY)
+
+            Determine the PRIMARY geographic location of this event. Every military conflict event happens somewhere specific.
+
+            Common locations for this conflict (use these coordinates):
+            - Tehran, Iran: { "name": "Tehran, Iran", "lat": 35.6892, "lng": 51.3890 }
+            - Isfahan, Iran: { "name": "Isfahan, Iran", "lat": 32.6546, "lng": 51.6680 }
+            - Bushehr, Iran: { "name": "Bushehr, Iran", "lat": 28.9234, "lng": 50.8203 }
+            - Bandar Abbas, Iran: { "name": "Bandar Abbas, Iran", "lat": 27.1865, "lng": 56.2808 }
+            - Natanz, Iran: { "name": "Natanz, Iran", "lat": 33.5131, "lng": 51.9165 }
+            - Fordow, Iran: { "name": "Fordow, Iran", "lat": 34.8800, "lng": 51.9842 }
+            - Kharg Island, Iran: { "name": "Kharg Island, Iran", "lat": 29.2333, "lng": 50.3167 }
+            - Strait of Hormuz: { "name": "Strait of Hormuz", "lat": 26.5667, "lng": 56.2500 }
+            - Tel Aviv, Israel: { "name": "Tel Aviv, Israel", "lat": 32.0853, "lng": 34.7818 }
+            - Jerusalem, Israel: { "name": "Jerusalem, Israel", "lat": 31.7683, "lng": 35.2137 }
+            - Haifa, Israel: { "name": "Haifa, Israel", "lat": 32.7940, "lng": 34.9896 }
+            - Dimona, Israel: { "name": "Dimona, Israel", "lat": 31.0680, "lng": 35.0338 }
+            - Nevatim Air Base, Israel: { "name": "Nevatim Air Base, Israel", "lat": 31.2083, "lng": 34.9389 }
+            - Beirut, Lebanon: { "name": "Beirut, Lebanon", "lat": 33.8938, "lng": 35.5018 }
+            - Damascus, Syria: { "name": "Damascus, Syria", "lat": 33.5138, "lng": 36.2765 }
+            - Baghdad, Iraq: { "name": "Baghdad, Iraq", "lat": 33.3152, "lng": 44.3661 }
+            - Riyadh, Saudi Arabia: { "name": "Riyadh, Saudi Arabia", "lat": 24.7136, "lng": 46.6753 }
+            - Washington D.C., USA: { "name": "Washington D.C., USA", "lat": 38.9072, "lng": -77.0369 }
+            - Pentagon, USA: { "name": "Pentagon, Virginia, USA", "lat": 38.8719, "lng": -77.0563 }
+            - United Nations, NYC: { "name": "United Nations, New York, USA", "lat": 40.7489, "lng": -73.9680 }
+            - Brussels, Belgium (NATO): { "name": "NATO HQ, Brussels, Belgium", "lat": 50.8503, "lng": 4.3517 }
+            - Persian Gulf: { "name": "Persian Gulf", "lat": 26.0000, "lng": 52.0000 }
+            - Red Sea: { "name": "Red Sea", "lat": 20.0000, "lng": 38.0000 }
+            - Mediterranean Sea: { "name": "Eastern Mediterranean Sea", "lat": 34.0000, "lng": 33.0000 }
+
+            For locations not in this list, estimate the lat/lng based on the city/region name.
+            For diplomatic statements or announcements, use the location where the statement was made (e.g., White House = Washington D.C.).
+            If you truly cannot determine ANY location, omit the location field -- but this should be rare. Almost every event has a location.
+
+            Include in your POST payload:
+            "location": { "name": "<place name>", "lat": <latitude>, "lng": <longitude> }
+
             ## Step 5: Create draft event
 
             MEDIA HANDLING (CRITICAL):
@@ -101,6 +138,7 @@ jobs:
                 "headline_fr": "<French headline>",
                 "body_fr": "<French body>",
                 "media": <PASTE Media JSON here as raw JSON array, NOT as a string>,
+                "location": {"name": "<location name>", "lat": <latitude>, "lng": <longitude>},
                 "status": "draft"
               }'
             ```
@@ -129,6 +167,7 @@ jobs:
             - Do NOT use web search. Only use the input provided.
             - **body is MANDATORY** — always write at least 2 full sentences (minimum 10 characters). The API WILL REJECT events with empty body.
             - **media is MANDATORY when provided** — if the Input has "Media JSON" with a JSON array, you MUST include it in the POST. Omitting media when it was provided is a failure.
+            - **location is MANDATORY when determinable** — use the reference coordinates list in the Geocoding section. Almost every event has a location.
             - All French text must be raw UTF-8, NEVER \u escape sequences.
             - All JSON must be valid. Escape double quotes inside strings.
             - STRICT DATE: Timeline covers events from February 28, 2026 onward.
