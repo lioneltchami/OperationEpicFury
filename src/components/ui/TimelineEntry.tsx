@@ -97,21 +97,28 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
 				>
 					<LocalTime timeET={event.timeET} />
 				</span>
+				{event.category === "breaking-important" && (
+					<span className="px-2 py-0.5 text-[10px] font-bold tracking-widest border border-red-500 rounded-sm uppercase text-red-500 bg-transparent">
+						{dict.categories["breaking-important"]}
+					</span>
+				)}
 				{(event.breaking || event.category === "breaking-important") && (
-					<span className="px-2 py-0.5 text-[11px] font-bold tracking-widest bg-red-600 rounded uppercase text-white animate-pulse-breaking">
+					<span className="px-2 py-0.5 text-[10px] font-bold tracking-widest bg-red-700 rounded-sm uppercase text-white animate-pulse-breaking">
 						{dict.common.breaking}
 					</span>
 				)}
-				<span
-					className={cn(
-						"px-2 py-0.5 text-[11px] font-bold tracking-widest border rounded uppercase",
-						cat.bg,
-						cat.border,
-						cat.text,
-					)}
-				>
-					{catLabel}
-				</span>
+				{event.category !== "breaking-important" && (
+					<span
+						className={cn(
+							"px-2 py-0.5 text-[10px] font-bold tracking-widest border rounded-sm uppercase",
+							cat.bg,
+							cat.border,
+							cat.text,
+						)}
+					>
+						{catLabel}
+					</span>
+				)}
 				{event.confidence && event.confidence !== "confirmed" && (
 					<span
 						className={cn(
@@ -128,9 +135,9 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
 			{/* Card */}
 			<div
 				className={cn(
-					"card-tactical rounded-sm p-5 transition-colors duration-300",
+					"card-tactical rounded-sm p-5 transition-all duration-300",
 					event.category === "breaking-important"
-						? "bg-red-950 border border-red-700/60 hover:bg-red-900 shadow-[0_0_40px_rgba(153,27,27,0.4)] card-tactical-breaking card-breaking-glow border-l-[3px] border-l-red-500"
+						? "bg-red-500/10 border-2 border-red-600 hover:bg-red-500/15 shadow-[0_0_50px_rgba(220,38,38,0.25)] card-tactical-breaking card-breaking-glow"
 						: "bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05] hover:border-red-500/20",
 				)}
 			>
