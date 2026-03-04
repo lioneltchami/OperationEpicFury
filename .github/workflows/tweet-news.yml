@@ -60,7 +60,7 @@ jobs:
             The text starts with "[Tweet by Name (@handle)]" followed by the tweet content.
 
             - **headline**: English, concise, news-style summary of the tweet
-            - **body**: English, 2-4 sentences, factual, AP news style
+            - **body**: English, **MANDATORY** — ALWAYS write 2-4 factual sentences in AP news style. If the tweet is short, expand using known conflict context. NEVER leave body empty.
             - **timeET**: From Step 2
             - **category**: One of: strike, retaliation, announcement, casualty, world-reaction, breaking, breaking-important
             - **source**: The tweet author name and handle (e.g. "John Smith (@jsmith)")
@@ -122,6 +122,7 @@ jobs:
 
             CRITICAL RULES:
             - Do NOT use web search. Only use the input provided.
+            - **body is MANDATORY** — always write at least 2 full sentences. NEVER submit with an empty or single-sentence body.
             - All French text must be raw UTF-8, NEVER \u escape sequences.
             - All JSON must be valid. Escape double quotes inside strings.
             - STRICT DATE: Timeline covers events from February 28, 2026 onward.

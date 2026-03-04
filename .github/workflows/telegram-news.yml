@@ -74,8 +74,10 @@ jobs:
             ## Step 4: Extract structured data
 
             From the content, determine:
-            - **headline**: English, concise, news-style
-            - **body**: English, 2-4 sentences, factual, AP news style
+            - **headline**: English, concise, news-style (who did what)
+            - **body**: English, **MANDATORY** — ALWAYS write 2-4 factual sentences in AP news style.
+              - If the source text is short (e.g. a photo caption), expand it using the context of the conflict and what is known about the event. Do NOT leave body empty or shorter than 2 sentences.
+              - If you cannot write at least 2 sentences, write what is known and add context about why this event matters to the conflict.
             - **timeET**: From Step 3 above
             - **category**: One of: strike, retaliation, announcement, casualty, world-reaction, breaking, breaking-important
             - **source**: The Telegram channel name or original source mentioned in the forwarded message
@@ -143,6 +145,7 @@ jobs:
             CRITICAL RULES:
             - Do NOT use web search. Do NOT use any source beyond the input provided.
             - Use the pre-computed "Timestamp (ET)" from the Input directly as timeET. NEVER leave timeET empty.
+            - **body is MANDATORY** — always write at least 2 full sentences. NEVER submit an event with an empty or single-sentence body. If the source is sparse, add factual context.
             - All French text must be raw UTF-8 characters, NEVER \u escape sequences.
             - All JSON must be valid. Escape double quotes inside strings.
             - STRICT DATE: This timeline covers events from February 28, 2026 onward. Reject anything before that date.

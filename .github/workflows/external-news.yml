@@ -75,7 +75,7 @@ jobs:
             ## Step 4: Extract structured data
 
             - **headline**: English, concise, news-style (rewrite the article title if needed for brevity)
-            - **body**: English, 2-4 sentences, factual, AP news style, summarizing the article
+            - **body**: English, **MANDATORY** — ALWAYS write 2-4 factual sentences in AP news style summarizing the article. NEVER leave body empty or under 2 sentences.
             - **timeET**: From Step 3 (article publication time in ET)
             - **category**: One of: strike, retaliation, announcement, casualty, world-reaction, breaking, breaking-important
             - **source**: The news outlet name (e.g. "Reuters", "AP", "BBC")
@@ -142,6 +142,7 @@ jobs:
             CRITICAL RULES:
             - Do NOT search the web. Only fetch the provided URL.
             - Use the ARTICLE'S publication date as timeET, NOT the current time.
+            - **body is MANDATORY** — always write at least 2 full sentences from the article content. NEVER submit with empty body.
             - All French text must be raw UTF-8, NEVER \u escape sequences.
             - All JSON must be valid. Escape double quotes inside strings.
             - STRICT DATE: Timeline covers events from February 28, 2026 onward.

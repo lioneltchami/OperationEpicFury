@@ -153,17 +153,24 @@ export const TimelineEntry = ({ event }: { event: TimelineEvent }) => {
 						headline
 					)}
 				</h3>
-				<p
-					className={cn(
-						"text-sm leading-relaxed mb-3",
-						event.category === "breaking-important"
-							? "text-red-200"
-							: "text-zinc-400",
-						isFr && "leading-loose",
-					)}
-				>
-					{body}
-				</p>
+				{/* Body text — always shown to match competitor's consistent look */}
+				{body ? (
+					<p
+						className={cn(
+							"text-sm leading-relaxed mb-3",
+							event.category === "breaking-important"
+								? "text-red-200"
+								: "text-zinc-400",
+							isFr && "leading-loose",
+						)}
+					>
+						{body}
+					</p>
+				) : (
+					<p className="text-sm italic text-zinc-600 mb-3">
+						Details are still emerging. Check the source link below for more information.
+					</p>
+				)}
 				{event.media && event.media.length > 0 && (
 					<MediaGallery media={event.media} eventHeadline={headline} />
 				)}
