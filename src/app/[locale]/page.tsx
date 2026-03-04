@@ -3,6 +3,7 @@ import { Hero } from "@/components/sections/Hero";
 import { StatsBar } from "@/components/sections/StatsBar";
 import { Ticker } from "@/components/sections/Ticker";
 import { Timeline } from "@/components/sections/Timeline";
+import { AggregateMap } from "@/components/ui/AggregateMapLazy";
 import type { TimelineEvent } from "@/data/timeline";
 import type { Dictionary } from "@/i18n";
 import { getDictionary } from "@/i18n";
@@ -104,6 +105,28 @@ export default async function Home({
         <Hero dict={dict} locale={locale as Locale} />
         <Ticker initialHeadlines={events.slice(0, 10).map(e => e.headline)} />
         <StatsBar stats={stats} />
+
+        {/* Integrated Live Tactical Map */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 mb-12">
+          <div className="relative h-[350px] md:h-[450px] rounded-sm overflow-hidden border border-zinc-800/50 bg-zinc-950 group">
+            <div className="absolute top-4 left-4 z-10 pointer-events-none">
+              <span className="bg-black/80 border border-red-500/30 px-3 py-1 text-[10px] font-mono tracking-widest text-red-500 uppercase flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                LIVE_TACTICAL_MAP
+              </span>
+            </div>
+            <AggregateMap events={events} locale={locale} />
+            <div className="absolute bottom-4 right-4 z-10">
+              <a
+                href={`/${locale}/map`}
+                className="bg-black/80 border border-zinc-800 px-3 py-1.5 text-[10px] font-mono tracking-widest text-zinc-400 hover:text-white transition-colors uppercase"
+              >
+                Expand to Fullscreen →
+              </a>
+            </div>
+          </div>
+        </div>
+
         <div id="timeline">
           <Timeline
             initialEvents={events}

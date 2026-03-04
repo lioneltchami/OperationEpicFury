@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import { CurrentDate } from "@/components/ui/CurrentDate";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { SplitText } from "@/components/ui/SplitText";
@@ -11,7 +13,22 @@ type Props = {
   locale: Locale;
 };
 
+const HUDItem = ({ label, value, color = "text-red-500" }: { label: string; value: string; color?: string }) => (
+  <div className="flex items-center gap-2 text-[10px] font-mono tracking-tighter uppercase mb-1">
+    <span className="text-zinc-600 italic">{label}:</span>
+    <span className={color}>{value}</span>
+  </div>
+);
+
 export const Hero = ({ dict, locale }: Props) => {
+  const [tehranTime, setTehranTime] = useState("");
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTehranTime(new Date().toLocaleTimeString("en-GB", { timeZone: "Asia/Tehran", hour12: false }));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const isFr = locale === "fr";
   const monoClass = isFr ? "" : "font-mono";
 
@@ -46,6 +63,18 @@ export const Hero = ({ dict, locale }: Props) => {
             backgroundSize: "60px 60px",
           }}
         />
+        {/* Operations HUD */}
+        <div className="absolute top-20 left-4 z-20 p-3 bg-black/40 border border-zinc-800/50 backdrop-blur-sm rounded hidden md:block select-none">
+          <div className="flex items-center gap-2 mb-2 pb-2 border-b border-zinc-900">
+            <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-[10px] font-bold text-zinc-500 tracking-[0.2em]">OP_HUD_V2.1</span>
+          </div>
+          <HUDItem label="SATELLITE" value="ACTIVE" color="text-green-500" />
+          <HUDItem label="INTEL_FEED" value="ONLINE" color="text-green-500" />
+          <HUDItem label="SWR_POLL" value="ACTIVE (30S)" />
+          <HUDItem label="TEHRAN" value={tehranTime || "00:00:00"} color="text-red-400" />
+        </div>
+
         {/* Scanlines */}
         <div
           className="absolute inset-0 opacity-[0.015]"

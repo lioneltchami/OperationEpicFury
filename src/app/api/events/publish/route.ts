@@ -5,6 +5,7 @@ import { generateSlug } from "@/lib/slug";
 import { notifySubscribers } from "@/lib/notify";
 import { validateEventInput } from "@/lib/validate-event";
 import { revalidateTimeline } from "@/lib/revalidate";
+import { findSource } from "@/data/sources";
 import type { MediaItem } from "@/data/timeline";
 
 export async function POST(req: NextRequest) {
@@ -42,10 +43,20 @@ export async function POST(req: NextRequest) {
     media = [...media, ...buffered];
   }
 
+  // Auto-detect source region if not provided
+  let sourceRegion = result.data.sourceRegion;
+  if (!sourceRegion) {
+    const known = findSource(result.data.source);
+    if (known && known.region !== "global") {
+      sourceRegion = known.region as any;
+    }
+  }
+
   const event = {
     ...result.data,
     id,
     slug,
+    sourceRegion,
     ...(media.length > 0 ? { media } : {}),
   };
   await addEvent(event);
