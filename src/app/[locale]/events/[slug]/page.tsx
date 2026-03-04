@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { BackToTimeline } from "@/components/ui/BackToTimeline";
 import { EventMap } from "@/components/ui/EventMapLazy";
 import { LocalTime } from "@/components/ui/LocalTime";
 import { MediaGallery } from "@/components/ui/MediaGallery";
@@ -145,25 +146,10 @@ export default async function EventPage({ params }: Props) {
         {/* Top bar */}
         <div className="border-b border-zinc-800/60 bg-zinc-950/80 backdrop-blur-xl sticky top-0 z-40">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 flex items-center justify-between h-12">
-            <a
+            <BackToTimeline
               href={`/${locale}`}
-              className="flex items-center gap-2 text-xs text-zinc-500 hover:text-white transition-colors"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
-                />
-              </svg>
-              {(dict.common as Record<string, string>).backToTimeline}
-            </a>
+              label={(dict.common as Record<string, string>).backToTimeline}
+            />
             <span className="text-[11px] text-zinc-500 font-mono tracking-wider uppercase">
               {isFr ? SITE_NAME_FR : SITE_NAME}
             </span>
