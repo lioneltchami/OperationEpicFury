@@ -55,7 +55,8 @@
 		"disclaimer": "All information sourced from major news outlets. This is a documentation project.",
 		"exportJson": "Export JSON",
 		"exportCsv": "Export CSV",
-		"embedCode": "Embed code"
+		"embedCode": "Embed code",
+		"supportProject": "Support this project"
 	},
 	"categories": {
 		"strike": "STRIKE",

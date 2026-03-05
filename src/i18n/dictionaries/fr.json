@@ -55,7 +55,8 @@
     "disclaimer": "Toutes les informations proviennent de grands médias. Ceci est un projet de documentation.",
     "exportJson": "Exporter JSON",
     "exportCsv": "Exporter CSV",
-    "embedCode": "Code d'integration"
+    "embedCode": "Code d'integration",
+    "supportProject": "Soutenir ce projet"
   },
   "categories": {
     "strike": "FRAPPE",
