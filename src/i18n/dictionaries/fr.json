@@ -140,6 +140,15 @@
     "shareOnWhatsApp": "Partager sur WhatsApp",
     "copyLink": "Copier le lien"
   },
+  "contextMenu": {
+    "viewSource": "Voir l'article source",
+    "copyEventLink": "Copier le lien",
+    "copyPageLink": "Copier le lien de la page",
+    "sharePageOnX": "Partager sur X",
+    "exportJson": "Exporter JSON",
+    "exportCsv": "Exporter CSV",
+    "copied": "Copie !"
+  },
   "accessibility": {
     "skipToTimeline": "Aller a la chronologie",
     "rssFeed": "Flux RSS",

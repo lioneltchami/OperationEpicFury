@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { ContextMenu } from "@/components/ui/ContextMenu";
 import { NotificationBell } from "@/components/ui/NotificationBell";
 import { SupportButton } from "@/components/ui/SupportButton";
 import { getDictionary } from "@/i18n";
@@ -29,6 +30,7 @@ export default async function LocaleLayout({
       {children}
       <NotificationBell />
       <SupportButton />
+      <ContextMenu />
     </LocaleProvider>
   );
 }
