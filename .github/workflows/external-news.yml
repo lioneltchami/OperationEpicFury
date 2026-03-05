@@ -6,7 +6,7 @@ on:
 
 jobs:
   process-news:
-    runs-on: ["self-hosted", "linux", "x64", "hetzner"]
+    runs-on: ["self-hosted", "Linux", "X64", "proxmox", "lxc", "debian"]
     permissions:
       contents: read
       id-token: write

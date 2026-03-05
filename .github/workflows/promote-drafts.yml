@@ -7,7 +7,7 @@ on:
 jobs:
   promote:
     if: ${{ vars.AUTO_PUBLISH_ENABLED != 'false' }}
-    runs-on: ["self-hosted", "linux", "x64", "hetzner"]
+    runs-on: ["self-hosted", "Linux", "X64", "proxmox", "lxc", "debian"]
     steps:
       - name: Promote aged drafts
         run: |

@@ -8,7 +8,7 @@ on:
 
 jobs:
   ci:
-    runs-on: ["self-hosted", "linux", "x64", "hetzner"]
+    runs-on: ["self-hosted", "Linux", "X64", "proxmox", "lxc", "debian"]
     steps:
       - uses: actions/checkout@v4
 

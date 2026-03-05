@@ -5,7 +5,7 @@ on:
 
 jobs:
   test-news:
-    runs-on: ["self-hosted", "linux", "x64", "hetzner"]
+    runs-on: ["self-hosted", "Linux", "X64", "proxmox", "lxc", "debian"]
     permissions:
       contents: write
       issues: write

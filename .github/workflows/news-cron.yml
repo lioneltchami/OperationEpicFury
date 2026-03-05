@@ -21,7 +21,7 @@ jobs:
     if: >-
       ${{ vars.AUTO_PUBLISH_ENABLED != 'false' &&
           (github.event_name == 'schedule' || github.event.inputs.batch == 'all' || github.event.inputs.batch == '1') }}
-    runs-on: ["self-hosted", "linux", "x64", "hetzner"]
+    runs-on: ["self-hosted", "Linux", "X64", "proxmox", "lxc", "debian"]
     permissions:
       contents: write
       issues: write
@@ -274,7 +274,7 @@ jobs:
     if: >-
       ${{ vars.AUTO_PUBLISH_ENABLED != 'false' &&
           (github.event_name == 'schedule' || github.event.inputs.batch == 'all' || github.event.inputs.batch == '2') }}
-    runs-on: ["self-hosted", "linux", "x64", "hetzner"]
+    runs-on: ["self-hosted", "Linux", "X64", "proxmox", "lxc", "debian"]
     permissions:
       contents: write
       issues: write
@@ -538,7 +538,7 @@ jobs:
     if: >-
       ${{ vars.AUTO_PUBLISH_ENABLED != 'false' &&
           (github.event_name == 'schedule' || github.event.inputs.batch == 'all' || github.event.inputs.batch == '3') }}
-    runs-on: ["self-hosted", "linux", "x64", "hetzner"]
+    runs-on: ["self-hosted", "Linux", "X64", "proxmox", "lxc", "debian"]
     permissions:
       contents: write
       issues: write
