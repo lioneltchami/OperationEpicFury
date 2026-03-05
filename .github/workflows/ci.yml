@@ -8,7 +8,7 @@ on:
 
 jobs:
   ci:
-    runs-on: ubuntu-latest
+    runs-on: ["self-hosted", "linux", "x64", "hetzner"]
     steps:
       - uses: actions/checkout@v4
 

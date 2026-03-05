@@ -6,7 +6,7 @@ on:
 
 jobs:
   process-tweet:
-    runs-on: ubuntu-latest
+    runs-on: ["self-hosted", "linux", "x64", "hetzner"]
     permissions:
       contents: read
       id-token: write
