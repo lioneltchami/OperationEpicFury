@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
-import { locales, type Locale } from "@/i18n/config";
-import { getDictionary } from "@/i18n";
-import { LocaleProvider } from "@/i18n/LocaleContext";
 import { NotificationBell } from "@/components/ui/NotificationBell";
+import { SupportButton } from "@/components/ui/SupportButton";
+import { getDictionary } from "@/i18n";
+import { type Locale, locales } from "@/i18n/config";
+import { LocaleProvider } from "@/i18n/LocaleContext";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -27,6 +28,7 @@ export default async function LocaleLayout({
     <LocaleProvider locale={locale as Locale} dict={dict}>
       {children}
       <NotificationBell />
+      <SupportButton />
     </LocaleProvider>
   );
 }
