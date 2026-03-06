@@ -52,9 +52,6 @@ export async function GET(req: NextRequest) {
     );
 
   const res = NextResponse.json(events);
-  res.headers.set(
-    "Cache-Control",
-    "public, s-maxage=120, stale-while-revalidate=300",
-  );
+  res.headers.set("Cache-Control", "no-store");
   return res;
 }

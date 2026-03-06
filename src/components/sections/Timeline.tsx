@@ -53,16 +53,26 @@ export const Timeline = ({
   const [allEvents, setAllEvents] = useState(initialEvents);
   const { data: liveEvents } = useTimelineEvents();
 
-  // Merge live updates
+  // Merge live updates — only prepend events that are NEWER than the most
+  // recent event already displayed. Without this guard, the SWR hook returning
+  // all 300+ events would prepend old events (not in the initial 30) to the top.
   useEffect(() => {
     if (liveEvents && Array.isArray(liveEvents)) {
-      const newestFirst = [...liveEvents].reverse();
       setAllEvents((prev) => {
+        if (!prev.length) return prev;
         const existingIds = new Set(prev.map((e) => e.id));
-        const toAdd = newestFirst.filter((e) => !existingIds.has(e.id));
+        // The most recent timeET already shown (prev is newest-first)
+        const newestShownTime = prev[0].timeET ?? "";
+        // Only accept events that are both unseen AND newer than what's displayed
+        const toAdd = liveEvents.filter(
+          (e) => !existingIds.has(e.id) && (e.timeET ?? "") > newestShownTime,
+        );
         if (toAdd.length === 0) return prev;
-        // Prepend new arrivals to the top
-        return [...toAdd, ...prev];
+        // Sort truly new events newest-first before prepending
+        const sorted = [...toAdd].sort((a, b) =>
+          (b.timeET ?? "") > (a.timeET ?? "") ? 1 : -1,
+        );
+        return [...sorted, ...prev];
       });
     }
   }, [liveEvents]);
@@ -165,8 +175,8 @@ export const Timeline = ({
           <button
             onClick={() => setFilter(null)}
             className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:outline-none ${!filter
-                ? "bg-red-500/20 text-red-400 border-red-500/40"
-                : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
+              ? "bg-red-500/20 text-red-400 border-red-500/40"
+              : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
               }`}
           >
             {timelineDict.all}
@@ -176,8 +186,8 @@ export const Timeline = ({
               key={cat}
               onClick={() => setFilter(filter === cat ? null : cat)}
               className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:outline-none ${filter === cat
-                  ? "bg-red-500/20 text-red-400 border-red-500/40"
-                  : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
+                ? "bg-red-500/20 text-red-400 border-red-500/40"
+                : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
                 }`}
             >
               {catLabels[cat] ?? cat}
@@ -190,8 +200,8 @@ export const Timeline = ({
           <button
             onClick={() => setRegionFilter(null)}
             className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:outline-none ${!regionFilter
-                ? "bg-zinc-700/40 text-zinc-300 border-zinc-600/40"
-                : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
+              ? "bg-zinc-700/40 text-zinc-300 border-zinc-600/40"
+              : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
               }`}
           >
             {timelineDict.allSources}
@@ -203,8 +213,8 @@ export const Timeline = ({
                 setRegionFilter(regionFilter === r.key ? null : r.key)
               }
               className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:outline-none ${regionFilter === r.key
-                  ? "bg-zinc-700/40 text-zinc-300 border-zinc-600/40"
-                  : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
+                ? "bg-zinc-700/40 text-zinc-300 border-zinc-600/40"
+                : "text-zinc-500 border-zinc-800 hover:border-zinc-600"
                 }`}
             >
               {timelineDict[r.labelKey]}

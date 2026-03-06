@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import type { TimelineEvent } from "@/data/timeline";
 import { authorize } from "@/lib/authorize";
-import { addEvent, getAllEvents, getPublishedEvents } from "@/lib/kv";
+import { addEvent, getAllEvents, getPublishedEventsPaginated } from "@/lib/kv";
 import { notifySubscribers } from "@/lib/notify";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { revalidateTimeline } from "@/lib/revalidate";
@@ -22,12 +22,12 @@ export async function GET(req: NextRequest) {
         },
       );
     }
-    const published = await getPublishedEvents();
+    // Return the 500 most recent published events, newest-first.
+    // no-store ensures Vercel CDN never caches this — the SWR realtime
+    // hook needs fresh data on every poll.
+    const { events: published } = await getPublishedEventsPaginated(0, 500);
     const res = NextResponse.json(published);
-    res.headers.set(
-      "Cache-Control",
-      "public, s-maxage=60, stale-while-revalidate=300",
-    );
+    res.headers.set("Cache-Control", "no-store");
     return res;
   }
   const events = await getAllEvents();

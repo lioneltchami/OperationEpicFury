@@ -40,17 +40,11 @@ export async function GET(req: NextRequest) {
   if (category && VALID_CATEGORIES.includes(category as EventCategory)) {
     const filtered = data.events.filter((e) => e.category === category);
     const res = NextResponse.json({ events: filtered, total: filtered.length });
-    res.headers.set(
-      "Cache-Control",
-      "public, s-maxage=60, stale-while-revalidate=300",
-    );
+    res.headers.set("Cache-Control", "no-store");
     return res;
   }
 
   const res = NextResponse.json(data);
-  res.headers.set(
-    "Cache-Control",
-    "public, s-maxage=60, stale-while-revalidate=300",
-  );
+  res.headers.set("Cache-Control", "no-store");
   return res;
 }

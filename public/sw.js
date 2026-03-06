@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const STATIC_CACHE = "static-" + CACHE_VERSION;
 const DATA_CACHE = "data-" + CACHE_VERSION;
 const IMAGE_CACHE = "images-" + CACHE_VERSION;
