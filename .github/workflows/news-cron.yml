@@ -36,6 +36,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          display_report: "true"
           claude_args: '--allowed-tools "WebFetch,Bash(gh issue create:*),Bash(gh issue list:*),Bash(curl:*)"'
           prompt: |
             You are an autonomous news aggregation agent for the Operation Epic Fury timeline (Iran-Israel-US military conflict, started Feb 28 2026).
@@ -289,6 +290,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          display_report: "true"
           claude_args: '--allowed-tools "WebFetch,Bash(gh issue create:*),Bash(gh issue list:*),Bash(curl:*)"'
           prompt: |
             You are an autonomous news aggregation agent for the Operation Epic Fury timeline (Iran-Israel-US military conflict, started Feb 28 2026).
@@ -553,6 +555,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          display_report: "true"
           claude_args: '--allowed-tools "WebFetch,Bash(gh issue create:*),Bash(gh issue list:*),Bash(curl:*)"'
           prompt: |
             You are an autonomous news aggregation agent for the Operation Epic Fury timeline (Iran-Israel-US military conflict, started Feb 28 2026).
