@@ -13,7 +13,7 @@ export async function authorize(req?: NextRequest): Promise<boolean> {
 
   // Check bearer token auth (used by GitHub Actions / external automation)
   if (req) {
-    const authHeader = req.headers.get("authorization") || (req as any).headers?.authorization;
+        const authHeader = req.headers.get("authorization");
     if (authHeader === `Bearer ${secret}`) {
       return true;
     }
