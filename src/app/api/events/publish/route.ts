@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
 	if (!sourceRegion) {
 		const known = findSource(result.data.source);
 		if (known && known.region !== "global") {
-			        sourceRegion = known.region as typeof sourceRegion;
+			sourceRegion = known.region as "us" | "eu" | "middle-east" | "asia";
 		}
 	}
 
