@@ -1,8 +1,8 @@
 name: Auto News Gathering
 
-on:
-  schedule:
-    - cron: "0 */4 * * *"
+#on:
+#  schedule:
+#    - cron: "* * * * "
   workflow_dispatch:
     inputs:
       batch:
